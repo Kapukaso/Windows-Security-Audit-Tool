@@ -1,0 +1,6 @@
+psutil 
+pandas 
+jinja2
+colorama 
+tabulate 
+wmi
