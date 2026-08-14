@@ -1,0 +1,45 @@
+{
+    "timestamp": "2026-08-12T14:01:24.074072",
+    "score_summary": {
+        "category_scores": {
+            "Defender": 20,
+            "Firewall": 0,
+            "Users": 15,
+            "Password Policy": 10,
+            "Updates": 15,
+            "Network": 8,
+            "Services": 10,
+            "Startup": 10,
+            "Software": 9,
+            "Event Logs": 10
+        },
+        "total_earned": 107,
+        "total_possible": 135
+    },
+    "findings": [
+        {
+            "id": "SOFT-001",
+            "title": "Software with Unknown Publisher",
+            "category": "Software",
+            "severity": "LOW",
+            "description": "The software 'Rustup: the Rust toolchain installer' does not have a verified publisher.",
+            "recommendation": "Verify if this software is legitimate or remove it if unnecessary."
+        },
+        {
+            "id": "NET-002",
+            "title": "Windows File Sharing (SMB) Exposed",
+            "category": "Network",
+            "severity": "MEDIUM",
+            "description": "SMB/NetBIOS (Port 445) is listening on all network interfaces.",
+            "recommendation": "Ensure SMBv1 is disabled and avoid exposing SMB directly to untrusted networks."
+        },
+        {
+            "id": "POL-001",
+            "title": "Weak Minimum Password Length",
+            "category": "Password Policy",
+            "severity": "HIGH",
+            "description": "The minimum password length is set to 0 characters.",
+            "recommendation": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+        }
+    ]
+}
