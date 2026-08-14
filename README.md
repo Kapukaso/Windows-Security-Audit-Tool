@@ -1,141 +1,101 @@
-# Windows Security Audit Tool
+# Defiant: Windows Security Posture Platform
 
-A Python-based Windows security auditing tool that gathers important system-security information and presents it in readable terminal tables. The project is designed to help users understand the security posture of a Windows computer without changing its configuration.
+![Platform](https://img.shields.io/badge/Platform-Windows-blue.svg)
+![Language](https://img.shields.io/badge/Language-Python_3.10+-yellow.svg)
+![Framework](https://img.shields.io/badge/Framework-Flask-lightgrey.svg)
+![Database](https://img.shields.io/badge/Database-SQLite-green.svg)
 
-> This tool is read-only. It collects and reports information; it does not modify Windows security settings, firewall rules, users, or services.
+**Defiant** is an enterprise-grade, lightweight Endpoint Detection and Security Audit platform. It programmatically evaluates a Windows system's security posture, calculates a weighted risk score, stores audit history, provides live telemetry, and offers automated remediation (Hardening) for critical vulnerabilities.
 
-## Features
+---
 
-### Completed
+## 🎯 Project Overview
+This project was designed to automate the traditionally manual process of checking a Windows machine for security misconfigurations. Rather than dumping raw data into a CLI, it aggregates findings through a central Risk Scoring Engine and presents them on a decoupled, modern web dashboard.
 
-- System information audit
-  - Computer name, active user, Windows version, CPU, RAM, boot time, and IP address
-- Microsoft Defender audit
-  - Antivirus, real-time protection, behavior monitoring, download protection, and Network Inspection System status
-  - Findings and Defender score out of 10
-- Windows Firewall audit
-  - Domain, Private, and Public firewall profile status
-  - Default inbound and outbound actions
-  - Findings and Firewall score out of 10
-- Local user account audit
-  - Enabled and disabled local accounts
-  - Local administrator membership
-  - Password-last-set and last-sign-in information
-  - Findings and user-account score out of 10
+### Core Capabilities
+1. **Automated Auditing (10 Phases):** Analyzes Windows Defender, Firewalls, User Accounts, Password Policies, Open Ports, Active Services, Startup Apps, Installed Software, Windows Updates, and Event Logs.
+2. **Mathematical Risk Scoring:** Evaluates findings based on Severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) and deducts points from 10 distinct, weighted categories to generate an overall health percentage out of 135 total points.
+3. **Automated Remediation:** Features a "Do No Harm" hardening engine. It allows 1-click automated fixes for safe configurations (like Password Lengths) while safely flagging complex software uninstalls for manual review.
+4. **Live Telemetry:** Streams real-time CPU and RAM allocation to the dashboard.
+5. **Persistent Scan History:** Saves every audit mathematically to a local SQLite database for historical compliance tracking.
 
-### Planned
+---
 
-- Running services audit
-- Startup-program audit
-- Installed-software audit
-- Password-policy audit
-- Windows Update audit
-- Open network-port audit
-- Event Log summary
-- Overall security score
-- HTML and PDF reports
+## 🏗️ System Architecture
 
-## Project Structure
+The platform operates on a modular, multi-layer architecture:
 
-```text
-Windows-Security-Audit-Tool/
-├── main.py                    # Runs the audit and displays results
-├── requirements.txt            # Python dependencies
-├── README.md                   # Project documentation
-├── modules/
-│   ├── system.py               # Phase 1: system information
-│   ├── defender.py             # Phase 2: Microsoft Defender
-│   ├── firewall.py             # Phase 3: Windows Firewall
-│   └── users.py                # Phase 4: local user accounts
-├── utils/
-│   └── powershell.py           # PowerShell execution and JSON parsing
-├── documentation/
-│   ├── phase1.md
-│   ├── phase2.md
-│   ├── phase3.md
-│   └── phase4.md
-├── reports/                    # Generated reports (future phase)
-├── templates/                  # HTML report templates (future phase)
-└── screenshots/                # Project screenshots
-```
+1. **Data Collection Layer (`modules/`)**
+   - Utilizes `psutil`, `WMI`, `socket`, and `subprocess` (PowerShell) to extract raw operating system data without requiring heavy third-party agents.
+2. **Scoring & Analysis Layer (`modules/score.py`)**
+   - Validates the extracted configurations against hardcoded security baselines. Calculates the final score.
+3. **Persistence Layer (`database/database.py`)**
+   - Stores relational data in `audit_history.db` (Tables: `scans`, `findings`).
+4. **API & Web Layer (`app.py`, `templates/`)**
+   - A Flask backend exposes RESTful API endpoints (`/api/scan`, `/api/history`, `/api/telemetry`).
+   - A modern JavaScript/HTML frontend (inspired by EDRs like CrowdStrike) consumes the API asynchronously via `fetch`.
 
-## Requirements
+---
 
-- Windows 10 or Windows 11
-- Python 3.10 or later
-- PowerShell
+## 🚀 Installation & Usage
 
-## Installation
+### Prerequisites
+- Windows 10 or 11
+- Python 3.10 or higher
+- Administrator Privileges (Required for automated remediation and deep system audits)
 
-1. Clone or download the project.
-
-2. Open PowerShell in the project folder.
-
-3. Create and activate a virtual environment (recommended):
-
-   ```powershell
-   python -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   ```
-
-4. Install dependencies:
-
-   ```powershell
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-Run the application from the project root:
-
+### 1. Install Dependencies
+Open an **Administrator PowerShell** terminal and install the required Python libraries:
 ```powershell
-python main.py
+pip install -r requirements.txt
 ```
 
-The program displays each audit section in the terminal, followed by findings and section scores where available.
+### 2. Start the Platform
+Run the backend web server:
+```powershell
+python app.py
+```
 
-## How It Works
+### 3. Access the Dashboard
+Open any modern web browser (Edge/Chrome/Firefox) and navigate to:
+👉 **http://127.0.0.1:5000**
 
-Python coordinates the audit modules. For Windows-specific security information, the project uses PowerShell commands and converts their JSON output into Python dictionaries and lists.
+*(From the dashboard, click **"INITIATE AUDIT"** to scan your system).*
+
+---
+
+## 📁 Repository Structure
 
 ```text
-main.py
-  ├── modules/system.py
-  ├── modules/defender.py
-  ├── modules/firewall.py
-  └── modules/users.py
-          ↓
-  utils/powershell.py
-          ↓
-      PowerShell
-          ↓
-   Windows security data
+📂 Windows Security Audit Tool/
+├── 📄 app.py                  # Flask Web Server and API router
+├── 📄 main.py                 # Core audit execution logic
+├── 📄 requirements.txt        # Python dependencies
+├── 📂 database/
+│   └── 📄 database.py         # SQLite schema and history retrieval
+├── 📂 modules/
+│   ├── 📄 defender.py         # Audits Windows Defender status
+│   ├── 📄 firewall.py         # Audits Windows Firewall rules
+│   ├── 📄 password_policy.py  # Audits Net Accounts policies
+│   ├── 📄 score.py            # Mathematical risk scoring engine
+│   └── 📄 ... (other audit modules)
+├── 📂 security/
+│   └── 📄 remediation.py      # Automated hardening execution scripts
+├── 📂 templates/
+│   └── 📄 dashboard.html      # Frontend UI (HTML, CSS, JS)
+└── 📂 tests/
+    └── 📄 test_audit.py       # Automated unit tests for the scoring math
 ```
 
-## Security Notes
+---
 
-- Run the tool only on computers you own or are authorized to audit.
-- Some information may be restricted by organizational policy or security software.
-- A failed data collection does not necessarily indicate an insecure computer; it means the setting could not be verified by the tool.
-- Review findings before changing any security configuration.
+## 🧪 Automated Testing
+To guarantee the reliability of the Risk Scoring Engine, the mathematical model is heavily tested. To run the automated unit tests:
+```powershell
+python -m unittest tests/test_audit.py
+```
 
-## Documentation
+---
 
-Detailed notes for each completed phase are stored in the `documentation` directory:
-
-- `phase1.md` — System Information
-- `phase2.md` — Microsoft Defender Audit
-- `phase3.md` — Windows Firewall Audit
-- `phase4.md` — Local User Account Audit
-
-## Future Improvements
-
-- Export results to HTML and PDF
-- Add command-line options to run selected audit modules
-- Add timestamps and audit history
-- Add unit tests for scoring and assessment functions
-- Improve findings severity levels and recommendations
-
-## License
-
-This project is intended for educational and portfolio use. Add a license file before distributing it publicly.
+## 🔒 Security Ethics ("Do No Harm")
+This tool is built for auditing and defense. The Remediation engine intentionally blocks automated deletion of user data, arbitrary services, or third-party software. Any "CRITICAL" findings in those categories must be remediated manually by a system administrator to ensure business continuity.

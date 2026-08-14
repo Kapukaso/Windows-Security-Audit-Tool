@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Defiant | Windows Security Posture</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-base: #050505;
+            --bg-panel: #111111;
+            --bg-card: #161616;
+            --border-subtle: #222222;
+            --border-hover: #333333;
+            
+            --accent-blue: #0070f3;
+            --accent-cyan: #00f0ff;
+            
+            --sec-critical: #ff3366;
+            --sec-high: #ff9900;
+            --sec-medium: #f1c40f;
+            --sec-low: #3498db;
+            --sec-info: #888888;
+            --sec-safe: #00ff66;
+
+            --text-main: #ededed;
+            --text-muted: #888888;
+            
+            --font-sans: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            background-color: var(--bg-panel);
+            border-right: 1px solid var(--border-subtle);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            margin-bottom: 3rem;
+            color: var(--text-main);
+        }
+        
+        .brand-icon { color: var(--accent-cyan); }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            color: var(--text-muted);
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .nav-item.active, .nav-item:hover {
+            background-color: var(--bg-card);
+            color: var(--text-main);
+        }
+        
+        .nav-item.active { border-left: 3px solid var(--accent-cyan); }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 2.5rem 4rem;
+        }
+
+        .view-section {
+            display: none;
+        }
+        .view-section.active {
+            display: block;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-bottom: 2.5rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin: 0 0 0.5rem 0;
+            letter-spacing: -1px;
+        }
+
+        .header p {
+            color: var(--text-muted);
+            margin: 0;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        .btn-scan {
+            background-color: var(--text-main);
+            color: var(--bg-base);
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-scan:hover { background-color: var(--accent-cyan); }
+        .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* DASHBOARD GRID */
+        .top-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel {
+            background-color: var(--bg-panel);
+            border: 1px solid var(--border-subtle);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .panel-title {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin: 0 0 1.5rem 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* SCORE GAUGE */
+        .score-display {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-number {
+            font-size: 4rem;
+            font-weight: 700;
+            font-family: var(--font-mono);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+
+        .score-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        /* METRICS */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+        }
+
+        .metric-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            padding: 1.5rem;
+            border-radius: 6px;
+        }
+
+        .metric-val {
+            font-size: 2rem;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        /* VULNERABILITIES LIST */
+        .finding-row {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-subtle);
+            border-radius: 6px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+            transition: border-color 0.2s;
+        }
+
+        .finding-row:hover { border-color: var(--border-hover); }
+
+        .severity-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid currentColor;
+        }
+
+        .sev-CRITICAL { color: var(--sec-critical); background: rgba(255, 51, 102, 0.1); }
+        .sev-HIGH { color: var(--sec-high); background: rgba(255, 153, 0, 0.1); }
+        .sev-MEDIUM { color: var(--sec-medium); background: rgba(241, 196, 15, 0.1); }
+        .sev-LOW { color: var(--sec-low); background: rgba(52, 152, 219, 0.1); }
+        .sev-INFO { color: var(--sec-info); border-color: transparent; }
+
+        .finding-details h3 {
+            margin: 0 0 0.25rem 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .finding-details p {
+            margin: 0;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .btn-remediate {
+            background: transparent;
+            border: 1px solid var(--sec-safe);
+            color: var(--sec-safe);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-remediate:hover {
+            background: var(--sec-safe);
+            color: #000;
+        }
+
+        /* TABLES FOR HISTORY */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+        }
+
+        th {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-family: var(--font-sans);
+            font-size: 0.8rem;
+        }
+
+        #results-container { display: none; }
+        .loading-overlay { display: none; margin-left: 8px; }
+        .spin { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="brand">
+            <i data-lucide="shield" class="brand-icon"></i>
+            DEFIANT
+        </div>
+        
+        <div class="nav-item active" onclick="switchTab('dashboard')" id="nav-dashboard">
+            <i data-lucide="layout-dashboard" size="18"></i> Dashboard
+        </div>
+        <div class="nav-item" onclick="switchTab('telemetry')" id="nav-telemetry">
+            <i data-lucide="activity" size="18"></i> Live Telemetry
+        </div>
+        <div class="nav-item" onclick="switchTab('history')" id="nav-history">
+            <i data-lucide="history" size="18"></i> Scan History
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        
+        <!-- DASHBOARD VIEW -->
+        <div id="view-dashboard" class="view-section active">
+            <div class="header">
+                <div>
+                    <h1>Security Posture Overview</h1>
+                    <p id="system-info">System: STANDBY | Last Audit: NEVER</p>
+                </div>
+                <button class="btn-scan" id="scanBtn" onclick="runScan()">
+                    <i data-lucide="radar" size="16"></i>
+                    <span id="btnText">INITIATE AUDIT</span>
+                    <i data-lucide="loader-2" class="loading-overlay spin" id="btnLoader" size="16"></i>
+                </button>
+            </div>
+
+            <div id="results-container">
+                <div class="top-grid">
+                    <div class="panel" style="margin-bottom:0;">
+                        <h2 class="panel-title"><i data-lucide="target" size="16"></i> Posture Score</h2>
+                        <div class="score-display">
+                            <div class="score-number" id="scoreValue" style="color: var(--sec-safe);">0</div>
+                            <div class="score-label" id="scoreMax">OUT OF 135</div>
+                        </div>
+                    </div>
+
+                    <div class="panel" style="margin-bottom:0;">
+                        <h2 class="panel-title"><i data-lucide="bar-chart-2" size="16"></i> Threat Intelligence</h2>
+                        <div class="metrics-grid">
+                            <div class="metric-card">
+                                <div class="metric-val" id="count-critical" style="color: var(--sec-critical);">0</div>
+                                <div class="metric-label">Critical Risks</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-val" id="count-high" style="color: var(--sec-high);">0</div>
+                                <div class="metric-label">High Risks</div>
+                            </div>
+                            <div class="metric-card">
+                                <div class="metric-val" id="count-total">0</div>
+                                <div class="metric-label">Total Findings</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <h2 class="panel-title"><i data-lucide="alert-triangle" size="16"></i> Active Vulnerabilities</h2>
+                    <div id="findingsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TELEMETRY VIEW -->
+        <div id="view-telemetry" class="view-section">
+            <div class="header">
+                <div>
+                    <h1>Live System Telemetry</h1>
+                    <p>Real-time endpoint performance tracking.</p>
+                </div>
+            </div>
+            <div class="metrics-grid">
+                <div class="metric-card">
+                    <div class="metric-val" id="tele-cpu">0%</div>
+                    <div class="metric-label">CPU Usage</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val" id="tele-ram">0%</div>
+                    <div class="metric-label">RAM Usage</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-val" id="tele-ram-gb">0 / 0 GB</div>
+                    <div class="metric-label">Memory Allocation</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY VIEW -->
+        <div id="view-history" class="view-section">
+            <div class="header">
+                <div>
+                    <h1>Scan History</h1>
+                    <p>Previous audits and posture scores.</p>
+                </div>
+                <button class="btn-scan" onclick="loadHistory()">
+                    <i data-lucide="refresh-cw" size="16"></i>
+                    <span>REFRESH</span>
+                </button>
+            </div>
+            <div class="panel">
+                <table id="historyTable">
+                    <thead>
+                        <tr>
+                            <th>Scan ID</th>
+                            <th>Timestamp</th>
+                            <th>Hostname</th>
+                            <th>Earned</th>
+                            <th>Total Possible</th>
+                            <th>Health %</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody">
+                        <tr><td colspan="6" style="text-align:center;">No scan history found.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        lucide.createIcons();
+        let telemetryInterval = null;
+
+        // TAB SWITCHING LOGIC
+        function switchTab(tabId) {
+            // Update nav
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            document.getElementById('nav-' + tabId).classList.add('active');
+            
+            // Update views
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('view-' + tabId).classList.add('active');
+
+            // Handle background tasks
+            if (telemetryInterval) clearInterval(telemetryInterval);
+            if (tabId === 'telemetry') {
+                loadTelemetry(); // load instantly
+                telemetryInterval = setInterval(loadTelemetry, 2000); // then every 2s
+            } else if (tabId === 'history') {
+                loadHistory();
+            }
+        }
+
+        // TELEMETRY API
+        async function loadTelemetry() {
+            try {
+                const res = await fetch('/api/telemetry');
+                const data = await res.json();
+                if(data.success) {
+                    document.getElementById('tele-cpu').innerText = data.cpu_percent + '%';
+                    document.getElementById('tele-ram').innerText = data.ram_percent + '%';
+                    document.getElementById('tele-ram-gb').innerText = `${data.ram_used_gb} / ${data.ram_total_gb} GB`;
+                }
+            } catch(e) {
+                console.error("Telemetry failed: ", e);
+            }
+        }
+
+        // HISTORY API
+        async function loadHistory() {
+            try {
+                const res = await fetch('/api/history');
+                const data = await res.json();
+                if(data.success && data.history.length > 0) {
+                    const tbody = document.getElementById('historyBody');
+                    tbody.innerHTML = '';
+                    data.history.forEach(scan => {
+                        // color coding for percentage
+                        let color = 'var(--sec-safe)';
+                        if (scan.percentage < 80) color = 'var(--sec-high)';
+                        if (scan.percentage < 60) color = 'var(--sec-critical)';
+
+                        tbody.innerHTML += `
+                            <tr>
+                                <td>#${scan.id}</td>
+                                <td>${new Date(scan.timestamp).toLocaleString()}</td>
+                                <td>${scan.hostname}</td>
+                                <td>${scan.total_earned}</td>
+                                <td>${scan.total_possible}</td>
+                                <td style="color: ${color}; font-weight: bold;">${scan.percentage}%</td>
+                            </tr>
+                        `;
+                    });
+                }
+            } catch (err) {
+                console.error("History failed: ", err);
+            }
+        }
+
+        // MAIN SCAN API
+        async function runScan() {
+            const btn = document.getElementById('scanBtn');
+            const btnText = document.getElementById('btnText');
+            const btnLoader = document.getElementById('btnLoader');
+            
+            btn.disabled = true;
+            btnText.innerText = 'AUDITING...';
+            btnLoader.style.display = 'inline-block';
+
+            try {
+                const response = await fetch('/api/scan', { method: 'POST' });
+                const data = await response.json();
+                
+                if(data.success) {
+                    renderResults(data);
+                } else {
+                    alert("Scan failed: " + data.error);
+                }
+            } catch (err) {
+                if (window.location.protocol === 'file:') {
+                    alert("ERROR: You opened the HTML file directly. Please access the dashboard via http://127.0.0.1:5000");
+                } else {
+                    alert("Network Error: " + err.message + "\nMake sure the Flask server (app.py) is running.");
+                }
+            } finally {
+                btn.disabled = false;
+                btnText.innerText = 'RE-SCAN SYSTEM';
+                btnLoader.style.display = 'none';
+            }
+        }
+
+        function renderResults(data) {
+            document.getElementById('results-container').style.display = 'block';
+            
+            // Set System Info
+            const host = data.system_info['Computer Name'] || 'UNKNOWN';
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('system-info').innerText = `System: ${host} | Last Audit: ${now}`;
+
+            // Render Score
+            const total = data.score.total_earned;
+            const possible = data.score.total_possible;
+            const pct = (total / possible) * 100;
+            
+            const scoreEl = document.getElementById('scoreValue');
+            scoreEl.innerText = total;
+            document.getElementById('scoreMax').innerText = `OUT OF ${possible}`;
+            
+            if(pct >= 80) scoreEl.style.color = 'var(--sec-safe)';
+            else if(pct >= 60) scoreEl.style.color = 'var(--sec-high)';
+            else scoreEl.style.color = 'var(--sec-critical)';
+
+            // Render Findings & Counts
+            const list = document.getElementById('findingsList');
+            list.innerHTML = '';
+
+            let counts = { CRITICAL: 0, HIGH: 0, TOTAL: 0 };
+
+            data.findings.forEach(f => {
+                if(typeof f !== 'object') return;
+                if(f.severity === 'INFO') return; // Hide INFO
+                
+                counts.TOTAL++;
+                if(f.severity === 'CRITICAL') counts.CRITICAL++;
+                if(f.severity === 'HIGH') counts.HIGH++;
+
+                const row = document.createElement('div');
+                row.className = 'finding-row';
+                
+                let fixBtn = '';
+                if(f.id) {
+                    fixBtn = `<button class="btn-remediate" onclick="fixFinding('${f.id}')">DEPLOY FIX</button>`;
+                }
+
+                row.innerHTML = `
+                    <div class="severity-badge sev-${f.severity}">${f.severity}</div>
+                    <div class="finding-details">
+                        <h3>${f.title} <span style="color:var(--text-muted); font-size: 0.8rem; font-family:var(--font-mono); margin-left: 8px;">[${f.id || 'N/A'}]</span></h3>
+                        <p>${f.description}</p>
+                    </div>
+                    <div>${fixBtn}</div>
+                `;
+                list.appendChild(row);
+            });
+
+            // Update Metrics
+            document.getElementById('count-critical').innerText = counts.CRITICAL;
+            document.getElementById('count-high').innerText = counts.HIGH;
+            document.getElementById('count-total').innerText = counts.TOTAL;
+
+            if(counts.TOTAL === 0) {
+                list.innerHTML = '<div style="text-align:center; padding: 3rem; color: var(--sec-safe); font-family: var(--font-mono);">[ NO VULNERABILITIES DETECTED. SYSTEM IS SECURE. ]</div>';
+            }
+        }
+
+        async function fixFinding(id) {
+            if(!confirm(`WARNING: Deploy automated fix for vulnerability [${id}]?`)) return;
+
+            try {
+                const response = await fetch('/api/remediate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ finding_id: id })
+                });
+                
+                const data = await response.json();
+                
+                if(data.success) {
+                    alert('SUCCESS: ' + data.message);
+                    runScan(); // Refresh
+                } else {
+                    alert('FAILURE: ' + data.message);
+                }
+            } catch (err) {
+                alert("Error connecting to backend API.");
+            }
+        }
+    </script>
+</body>
+</html>
