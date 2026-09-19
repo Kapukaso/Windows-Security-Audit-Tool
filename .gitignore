@@ -26,6 +26,7 @@ env.bak/
 venv.bak/
 
 # Project Database (Contains sensitive system scan history)
+
 audit_history.db
 
 # OS generated files

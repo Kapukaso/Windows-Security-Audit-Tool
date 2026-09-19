@@ -193,9 +193,10 @@ def get_installed_software():
     }
 
 
-def display_software(result):
+def display_software(result, extra_findings=None):
     """
     Display installed software, statistics, and findings.
+    Optionally accepts extra_findings (e.g. CVE results) to merge in.
     """
 
     if isinstance(result, dict) and "error" in result:
@@ -204,7 +205,9 @@ def display_software(result):
 
     software = result.get("software", [])
     stats = result.get("statistics", {})
-    findings = result.get("findings", [])
+    findings = list(result.get("findings", []))
+    if extra_findings:
+        findings.extend(extra_findings)
 
     table = []
     for program in software:

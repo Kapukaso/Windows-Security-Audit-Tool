@@ -16,7 +16,7 @@ This document maps the official 11-point security outline directly to the progra
 
 ### 4. File System Security
 * **Requirement:** Enable auditing and logging.
-* **Our Implementation:** **Phase 10 (`modules/event_logs.py`)** actively polls the Windows Security Event Log to ensure forensic auditing is enabled and accessible.
+* **Our Implementation:** **Phase 18 (`modules/fim.py`)** explicitly fulfills this by performing File Integrity Monitoring (FIM). It hashes highly sensitive OS files (like the `hosts` file) and logs any unauthorized cryptographic modifications as CRITICAL threats.
 
 ### 5. Network Security
 * **Requirement:** Disable unused network ports and protocols.
@@ -32,7 +32,7 @@ This document maps the official 11-point security outline directly to the progra
 
 ### 8. Monitoring and Logging
 * **Requirement:** Enable system logging and monitor system anomalies.
-* **Our Implementation:** **Phase 14 (Web Dashboard)** features a Live Telemetry engine using `psutil` to stream real-time CPU and RAM allocation metrics directly to the interface, acting as a lightweight anomaly monitor.
+* **Our Implementation:** **Phase 17 (`modules/ml_anomaly.py`)** uses a Machine Learning `IsolationForest` to analyze live hardware telemetry and detect behavioral anomalies indicative of cryptojackers. Additionally, **Phase 14 (Web Dashboard)** uses Chart.js to stream live real-time CPU/RAM metrics to the analyst.
 
 ### 9. Security Policies and Procedures
 * **Requirement:** Enforce security policies.

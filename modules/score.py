@@ -4,7 +4,6 @@ Calculates the final security score based on all aggregated findings.
 """
 from tabulate import tabulate
 
-# Maximum possible scores per category
 CATEGORY_WEIGHTS = {
     "Defender": 20,
     "Firewall": 20,
@@ -15,7 +14,10 @@ CATEGORY_WEIGHTS = {
     "Services": 10,
     "Startup": 10,
     "Software": 10,
-    "Event Logs": 10
+    "Event Logs": 10,
+    "Registry": 15,
+    "FIM": 20,
+    "Anomalies": 20
 }
 
 # Severity point deductions

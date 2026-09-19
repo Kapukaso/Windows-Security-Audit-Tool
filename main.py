@@ -1,4 +1,6 @@
 from tabulate import tabulate
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from modules import software
 from modules.system import get_system_info
 from modules.software import (
@@ -60,18 +62,20 @@ from modules.report import (
     generate_html_report
 )
 from database.database import save_scan_results
+from modules.fim import audit_fim
+from modules.ml_anomaly import audit_anomalies
+from modules.registry import get_registry_security, assess_registry, display_registry
+
 
 def print_table(title, data):
     """
     Prints a dictionary as a formatted table.
     """
-
     print("\n" + "=" * 60)
     print(title)
     print("=" * 60)
 
     table = [[key, value] for key, value in data.items()]
-
     print(
         tabulate(
             table,
@@ -81,52 +85,95 @@ def print_table(title, data):
     )
 
 
-def run_full_audit():
+from modules.cve_lookup import audit_software_cves
+
+def run_full_audit(progress_tracker=None):
     """
-    Runs all audit modules and returns the raw data, findings, and final score.
+    Runs all audit modules concurrently and returns the raw data, findings, and final score.
     """
-    # Phase 1
-    system_info = get_system_info()
-    
-    # Phase 2
-    defender_status = get_defender_status()
+    def update_progress(msg, pct):
+        if progress_tracker is not None:
+            progress_tracker["message"] = msg
+            progress_tracker["percentage"] = pct
+
+    update_progress("Initializing concurrent audit tasks...", 10)
+
+    tasks = {
+        "system_info": get_system_info,
+        "defender": get_defender_status,
+        "firewall": get_firewall_status,
+        "users": get_local_users,
+        "software": get_installed_software,
+        "services": get_services,
+        "startup": get_startup_apps,
+        "ports": get_listening_ports,
+        "policy": get_password_policy,
+        "updates": get_windows_updates,
+        "logs": get_event_log_stats,
+        "fim": audit_fim,
+        "ml": audit_anomalies,
+        "registry": get_registry_security
+    }
+
+    results = {}
+    total_tasks = len(tasks)
+    completed_tasks = 0
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fn): name for name, fn in tasks.items()}
+        for future in as_completed(futures):
+            results[futures[future]] = future.result()
+            completed_tasks += 1
+            # Base completion up to 70% for standard tasks
+            current_pct = 10 + int(60 * (completed_tasks / total_tasks))
+            update_progress(f"Completed {futures[future]} scan...", current_pct)
+
+    update_progress("Analyzing raw data for findings...", 75)
+
+    # Process findings
+    defender_status = results.get("defender")
     defender_findings = assess_defender(defender_status)
-    
-    # Phase 3
-    firewall_status = get_firewall_status()
+
+    firewall_status = results.get("firewall")
     firewall_findings = assess_firewall(firewall_status)
-    
-    # Phase 4
-    users = get_local_users()
+
+    users = results.get("users")
     user_findings = assess_users(users)
-    
-    # Phase 5
-    software = get_installed_software()
+
+    software = results.get("software")
     software_findings = software.get("findings", []) if isinstance(software, dict) else []
-    
-    # Phase 6
-    services = get_services()
+
+    # Run CVE lookup as a synchronous addition after software collection
+    update_progress("Checking CVE Database for installed software...", 80)
+    software_list = software.get("software", []) if isinstance(software, dict) else []
+    cve_findings = audit_software_cves(software_list, progress_tracker)
+    software_findings.extend(cve_findings)
+
+    update_progress("Finalizing risk scoring...", 90)
+
+    services = results.get("services")
     service_findings = assess_services(services)
-    
-    # Phase 7
-    startup_items = get_startup_apps()
+
+    startup_items = results.get("startup")
     startup_findings = assess_startup(startup_items)
-    
-    # Phase 8
-    ports = get_listening_ports()
+
+    ports = results.get("ports")
     port_findings = assess_ports(ports)
-    
-    # Phase 9
-    policy = get_password_policy()
+
+    policy = results.get("policy")
     policy_findings = assess_password_policy(policy)
-    
-    # Phase 10
-    updates = get_windows_updates()
+
+    updates = results.get("updates")
     update_findings = assess_updates(updates)
-    
-    # Phase 11
-    log_stats = get_event_log_stats()
+
+    log_stats = results.get("logs")
     log_findings = assess_event_logs(log_stats)
+
+    fim_findings = results.get("fim")
+    ml_findings = results.get("ml")
+    
+    registry_data = results.get("registry")
+    registry_findings = assess_registry(registry_data)
 
     old_scores = {
         "Defender": defender_score(defender_status),
@@ -145,10 +192,30 @@ def run_full_audit():
     all_findings.extend(policy_findings)
     all_findings.extend(update_findings)
     all_findings.extend(log_findings)
+    all_findings.extend(fim_findings if isinstance(fim_findings, list) else [])
+    all_findings.extend(ml_findings if isinstance(ml_findings, list) else [])
+    all_findings.extend(registry_findings if isinstance(registry_findings, list) else [])
 
     score_data = calculate_score(all_findings, old_scores)
     
-    return system_info, score_data, all_findings
+    raw_data = {
+        "defender_status": defender_status,
+        "firewall_status": firewall_status,
+        "users": users,
+        "software": software,
+        "services": services,
+        "startup_items": startup_items,
+        "ports": ports,
+        "policy": policy,
+        "updates": updates,
+        "log_stats": log_stats,
+        "registry_data": registry_data
+    }
+    
+    update_progress("Done.", 100)
+    
+    # Pack the results into the expected tuple format for app.py compatibility, and pass raw data
+    return results.get("system_info"), score_data, all_findings, raw_data
 
 
 def main():
@@ -157,45 +224,34 @@ def main():
     print("Windows Security Audit Tool")
     print("=" * 60)
 
-    # --------------------------
-    # Phase 1
-    # --------------------------
+    print("Running asynchronous audit... please wait.")
+    system_info, score_data, all_findings, raw_data = run_full_audit()
 
-    system_info = get_system_info()
+    # --------------------------
+    # Output Phase
+    # --------------------------
 
     print_table(
         "System Information",
         system_info
     )
 
-    # --------------------------
-    # Phase 2
-    # --------------------------
-
-    defender_status = get_defender_status()
-
     print_table(
         "Microsoft Defender",
-        defender_status
+        raw_data.get("defender_status", {})
     )
-
-    print("\nSecurity Findings\n")
-
-    for finding in assess_defender(defender_status):
-        print(finding)
-
-    print(
-        f"\nDefender Security Score: {defender_score(defender_status)}/10"
-    )
-    # --------------------------
-    # Phase 3
-    # --------------------------
-    firewall_status = get_firewall_status()
+    defender_findings = [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Defender"]
+    if defender_findings:
+        for f in defender_findings:
+            print(f"  [{f['severity']}] {f['title']}: {f['description']}")
+    else:
+        print("  [OK] All Defender protections are enabled.")
+    print(f"\nDefender Security Score: {defender_score(raw_data.get('defender_status'))}/10")
 
     print("\n" + "=" * 60)
     print("Windows Firewall")
     print("=" * 60)
-
+    firewall_status = raw_data.get("firewall_status")
     if isinstance(firewall_status, dict) and "error" in firewall_status:
         print(firewall_status["error"])
     else:
@@ -206,29 +262,19 @@ def main():
                 profile.get("DefaultInboundAction"),
                 profile.get("DefaultOutboundAction"),
             ]
-            for profile in firewall_status
+            for profile in (firewall_status or [])
         ]
         print(tabulate(
             table,
             headers=["Profile", "Enabled", "Default inbound", "Default outbound"],
             tablefmt="grid",
         ))
-
-    print("\nFirewall Findings\n")
-    for finding in assess_firewall(firewall_status):
-        print(finding)
-
     print(f"\nFirewall Security Score: {firewall_score(firewall_status)}/10")
-
-        # --------------------------
-    # Phase 4
-    # --------------------------
-    users = get_local_users()
 
     print("\n" + "=" * 60)
     print("Local User Accounts")
     print("=" * 60)
-
+    users = raw_data.get("users")
     if isinstance(users, dict) and "error" in users:
         print(users["error"])
     else:
@@ -240,7 +286,7 @@ def main():
                 user.get("PasswordLastSet"),
                 user.get("LastLogon"),
             ]
-            for user in users
+            for user in (users or [])
         ]
 
         print(tabulate(
@@ -254,149 +300,68 @@ def main():
             ],
             tablefmt="grid",
         ))
-
-    print("\nUser Account Findings\n")
-
-    for finding in assess_users(users):
-        print(finding)
-
     print(f"\nUser Account Security Score: {user_score(users)}/10")
-
-    # --------------------------
-    # Phase 4
-    # --------------------------
 
     print("\n" + "=" * 60)
     print("Installed Software")
     print("=" * 60)
-
-    software = get_installed_software()
-
-    display_software(software)
-
-    # --------------------------
-    # Phase 5
-    # --------------------------
+    display_software(raw_data.get("software"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Software"])
 
     print("\n" + "=" * 60)
     print("Windows Services")
     print("=" * 60)
-
-    services = get_services()
-    service_findings = assess_services(services)
-    
-    display_services(services, service_findings)
-
-    # --------------------------
-    # Phase 6
-    # --------------------------
+    display_services(raw_data.get("services"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Services"])
 
     print("\n" + "=" * 60)
     print("Startup Applications")
     print("=" * 60)
-
-    startup_items = get_startup_apps()
-    startup_findings = assess_startup(startup_items)
-    
-    display_startup(startup_items, startup_findings)
-
-    # --------------------------
-    # Phase 7
-    # --------------------------
+    display_startup(raw_data.get("startup_items"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Startup"])
 
     print("\n" + "=" * 60)
     print("Network & Listening Ports")
     print("=" * 60)
-
-    ports = get_listening_ports()
-    port_findings = assess_ports(ports)
-    
-    display_ports(ports, port_findings)
-
-    # --------------------------
-    # Phase 8
-    # --------------------------
+    display_ports(raw_data.get("ports"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Network"])
 
     print("\n" + "=" * 60)
     print("Password & Account Policy")
     print("=" * 60)
-
-    policy = get_password_policy()
-    policy_findings = assess_password_policy(policy)
-    
-    display_password_policy(policy, policy_findings)
-
-    # --------------------------
-    # Phase 9
-    # --------------------------
+    display_password_policy(raw_data.get("policy"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Password Policy"])
 
     print("\n" + "=" * 60)
     print("Windows Updates & Hotfixes")
     print("=" * 60)
-
-    updates = get_windows_updates()
-    update_findings = assess_updates(updates)
-    
-    display_updates(updates, update_findings)
-
-    # --------------------------
-    # Phase 10
-    # --------------------------
+    display_updates(raw_data.get("updates"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Updates"])
 
     print("\n" + "=" * 60)
     print("Event Log Analysis")
     print("=" * 60)
-
-    log_stats = get_event_log_stats()
-    log_findings = assess_event_logs(log_stats)
+    display_event_logs(raw_data.get("log_stats"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Event Logs"])
     
-    display_event_logs(log_stats, log_findings)
+    print("\n" + "=" * 60)
+    print("Registry Security")
+    print("=" * 60)
+    display_registry(raw_data.get("registry_data"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Registry"])
 
     # --------------------------
-    # Phase 11: Final Scoring
+    # Final Scoring
     # --------------------------
-    
-    # Collect legacy scores (Phases 1-3)
-    old_scores = {
-        "Defender": defender_score(defender_status),
-        "Firewall": firewall_score(firewall_status),
-        "Users": user_score(users)
-    }
-
-    # Collect dictionary findings (Phases 4-10)
-    all_findings = []
-    if isinstance(software, dict) and "findings" in software:
-        all_findings.extend(software["findings"])
-    all_findings.extend(service_findings)
-    all_findings.extend(startup_findings)
-    all_findings.extend(port_findings)
-    all_findings.extend(policy_findings)
-    all_findings.extend(update_findings)
-    all_findings.extend(log_findings)
-
-    # Calculate and display the score
-    score_data = calculate_score(all_findings, old_scores)
     display_final_score(score_data)
 
     # --------------------------
-    # Phase 12: Reporting
+    # Reporting
     # --------------------------
-    
     print("\n" + "=" * 60)
     print("Generating Reports")
     print("=" * 60)
-
     generate_json_report(score_data, all_findings)
     generate_html_report(score_data, all_findings, CATEGORY_WEIGHTS)
 
     # --------------------------
-    # Phase 13: SQLite History
+    # SQLite History
     # --------------------------
-    
     print("\n" + "=" * 60)
     print("Saving to Database")
     print("=" * 60)
-    
     scan_id = save_scan_results(system_info, score_data, all_findings)
     print(f"[+] Scan results saved to local SQLite database! (Scan ID: {scan_id})")
     

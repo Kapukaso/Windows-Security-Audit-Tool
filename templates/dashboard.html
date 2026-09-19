@@ -3,29 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Defiant | Windows Security Posture</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>Defiant | Next-Gen Posture</title>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js for gorgeous telemetry graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
         :root {
-            --bg-base: #050505;
-            --bg-panel: #111111;
-            --bg-card: #161616;
-            --border-subtle: #222222;
-            --border-hover: #333333;
+            /* Neon Cyberpunk / EDR Palette */
+            --bg-base: #030305;
+            --bg-panel: rgba(15, 15, 20, 0.7);
+            --bg-card: rgba(25, 25, 35, 0.6);
+            --border-subtle: rgba(255, 255, 255, 0.1);
+            --border-hover: rgba(0, 240, 255, 0.3);
             
-            --accent-blue: #0070f3;
             --accent-cyan: #00f0ff;
+            --accent-purple: #7000ff;
+            --accent-glow: 0 0 15px rgba(0, 240, 255, 0.4);
             
-            --sec-critical: #ff3366;
-            --sec-high: #ff9900;
-            --sec-medium: #f1c40f;
-            --sec-low: #3498db;
-            --sec-info: #888888;
-            --sec-safe: #00ff66;
+            --sec-critical: #ff2a55;
+            --sec-high: #ff9f0a;
+            --sec-medium: #ffd60a;
+            --sec-low: #30d158;
+            --sec-info: #636366;
+            --sec-safe: #00f58d;
 
-            --text-main: #ededed;
-            --text-muted: #888888;
+            --text-main: #f5f5f7;
+            --text-muted: #8e8e93;
             
             --font-sans: 'Inter', sans-serif;
             --font-mono: 'JetBrains Mono', monospace;
@@ -41,34 +48,39 @@
             padding: 0;
             display: flex;
             min-height: 100vh;
+            /* Animated Grid Background */
             background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px;
+                linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: center center;
+            backdrop-filter: blur(10px);
         }
 
-        /* SIDEBAR */
+        /* SIDEBAR (Glassmorphism) */
         .sidebar {
-            width: 260px;
-            background-color: var(--bg-panel);
+            width: 280px;
+            background: linear-gradient(180deg, rgba(10,10,15,0.95) 0%, rgba(5,5,8,0.95) 100%);
             border-right: 1px solid var(--border-subtle);
-            padding: 2rem 1.5rem;
+            padding: 2.5rem 1.5rem;
             display: flex;
             flex-direction: column;
             position: fixed;
             height: 100vh;
             z-index: 100;
+            box-shadow: 5px 0 30px rgba(0,0,0,0.5);
         }
 
         .brand {
             display: flex;
             align-items: center;
             gap: 12px;
-            font-size: 1.25rem;
-            font-weight: 700;
+            font-size: 1.5rem;
+            font-weight: 800;
             letter-spacing: -0.5px;
-            margin-bottom: 3rem;
-            color: var(--text-main);
+            margin-bottom: 3.5rem;
+            color: #fff;
+            text-shadow: var(--accent-glow);
         }
         
         .brand-icon { color: var(--accent-cyan); }
@@ -76,108 +88,172 @@
         .nav-item {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 12px;
+            gap: 14px;
+            padding: 12px 16px;
             color: var(--text-muted);
-            border-radius: 6px;
+            border-radius: 8px;
             text-decoration: none;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             font-weight: 500;
             margin-bottom: 0.5rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
         }
 
-        .nav-item.active, .nav-item:hover {
-            background-color: var(--bg-card);
+        .nav-item:hover {
             color: var(--text-main);
+            background: rgba(255,255,255,0.03);
+            border-color: var(--border-subtle);
         }
         
-        .nav-item.active { border-left: 3px solid var(--accent-cyan); }
+        .nav-item.active { 
+            background: linear-gradient(90deg, rgba(0, 240, 255, 0.1) 0%, transparent 100%);
+            color: var(--accent-cyan);
+            border-left: 3px solid var(--accent-cyan);
+            box-shadow: inset 2px 0 10px rgba(0, 240, 255, 0.05);
+        }
 
         /* MAIN CONTENT */
         .main-content {
-            margin-left: 260px;
+            margin-left: 280px;
             flex: 1;
-            padding: 2.5rem 4rem;
+            padding: 3rem 4rem;
+            max-width: 1400px;
         }
 
         .view-section {
             display: none;
+            animation: fadeIn 0.4s ease-out forwards;
         }
-        .view-section.active {
-            display: block;
+        .view-section.active { display: block; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .header {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-bottom: 2.5rem;
+            margin-bottom: 3rem;
+            border-bottom: 1px solid var(--border-subtle);
+            padding-bottom: 1.5rem;
         }
 
         .header h1 {
-            font-size: 2rem;
-            font-weight: 600;
+            font-size: 2.2rem;
+            font-weight: 700;
             margin: 0 0 0.5rem 0;
             letter-spacing: -1px;
+            background: linear-gradient(90deg, #fff, #a1a1aa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
         .header p {
-            color: var(--text-muted);
+            color: var(--accent-cyan);
             margin: 0;
             font-family: var(--font-mono);
             font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
+        /* SCAN BUTTON (Glowing) */
         .btn-scan {
-            background-color: var(--text-main);
-            color: var(--bg-base);
+            background: linear-gradient(135deg, var(--accent-cyan) 0%, #0088ff 100%);
+            color: #000;
             border: none;
-            padding: 0.75rem 1.5rem;
-            border-radius: 4px;
-            font-weight: 600;
+            padding: 0.85rem 2rem;
+            border-radius: 6px;
+            font-weight: 700;
             font-family: var(--font-mono);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
+            gap: 10px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 240, 255, 0.3);
         }
 
-        .btn-scan:hover { background-color: var(--accent-cyan); }
-        .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-scan:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 240, 255, 0.5);
+        }
+        .btn-scan:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
         /* DASHBOARD GRID */
         .top-grid {
             display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 1.5rem;
-            margin-bottom: 2rem;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            margin-bottom: 2.5rem;
         }
 
         .panel {
-            background-color: var(--bg-panel);
+            background: var(--bg-panel);
             border: 1px solid var(--border-subtle);
-            border-radius: 8px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
+            border-radius: 12px;
+            padding: 2rem;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
         }
 
         .panel-title {
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
             color: var(--text-muted);
-            margin: 0 0 1.5rem 0;
+            margin: 0 0 2rem 0;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
+            font-family: var(--font-mono);
         }
 
-        /* SCORE GAUGE */
-        .score-display {
+        /* CIRCULAR SVG GAUGE */
+        .gauge-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            height: 200px;
+        }
+
+        .circular-chart {
+            display: block;
+            margin: 0 auto;
+            max-width: 80%;
+            max-height: 250px;
+        }
+
+        .circle-bg {
+            fill: none;
+            stroke: rgba(255, 255, 255, 0.05);
+            stroke-width: 2.5;
+        }
+
+        .circle {
+            fill: none;
+            stroke-width: 2.5;
+            stroke-linecap: round;
+            transition: stroke-dasharray 1.5s ease-out, stroke 0.5s;
+        }
+
+        .gauge-text {
+            position: absolute;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -185,119 +261,143 @@
         }
 
         .score-number {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: 700;
             font-family: var(--font-mono);
             line-height: 1;
-            margin-bottom: 0.5rem;
+            text-shadow: 0 0 20px currentColor;
         }
 
         .score-label {
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             color: var(--text-muted);
+            margin-top: 5px;
+            letter-spacing: 1px;
         }
 
         /* METRICS */
         .metrics-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 1rem;
+            gap: 1.5rem;
+            height: 100%;
         }
 
         .metric-card {
-            background-color: var(--bg-card);
+            background: rgba(0,0,0,0.3);
             border: 1px solid var(--border-subtle);
             padding: 1.5rem;
-            border-radius: 6px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .metric-card::after {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.03) 0%, transparent 60%);
+            pointer-events: none;
         }
 
         .metric-val {
-            font-size: 2rem;
+            font-size: 2.5rem;
             font-family: var(--font-mono);
             font-weight: 700;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.5rem;
         }
 
         .metric-label {
             font-size: 0.8rem;
             color: var(--text-muted);
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        /* VULNERABILITIES LIST */
+        /* FINDINGS ROW (Glassy Hover) */
         .finding-row {
-            background-color: var(--bg-card);
-            border: 1px solid var(--border-subtle);
-            border-radius: 6px;
-            padding: 1.25rem;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid rgba(255,255,255,0.05);
+            border-radius: 8px;
+            padding: 1.5rem;
             margin-bottom: 1rem;
             display: grid;
             grid-template-columns: auto 1fr auto;
             gap: 1.5rem;
             align-items: center;
-            transition: border-color 0.2s;
+            transition: all 0.3s;
         }
 
-        .finding-row:hover { border-color: var(--border-hover); }
+        .finding-row:hover {
+            background: rgba(255,255,255,0.05);
+            border-color: rgba(255,255,255,0.1);
+            transform: translateX(5px);
+        }
 
         .severity-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
+            padding: 6px 12px;
+            border-radius: 6px;
             font-family: var(--font-mono);
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
             border: 1px solid currentColor;
+            box-shadow: inset 0 0 10px currentColor;
         }
 
-        .sev-CRITICAL { color: var(--sec-critical); background: rgba(255, 51, 102, 0.1); }
-        .sev-HIGH { color: var(--sec-high); background: rgba(255, 153, 0, 0.1); }
-        .sev-MEDIUM { color: var(--sec-medium); background: rgba(241, 196, 15, 0.1); }
-        .sev-LOW { color: var(--sec-low); background: rgba(52, 152, 219, 0.1); }
-        .sev-INFO { color: var(--sec-info); border-color: transparent; }
+        .sev-CRITICAL { color: var(--sec-critical); }
+        .sev-HIGH { color: var(--sec-high); }
+        .sev-MEDIUM { color: var(--sec-medium); }
+        .sev-LOW { color: var(--sec-low); }
+        .sev-INFO { color: var(--text-muted); border-color: var(--border-subtle); box-shadow: none; }
 
         .finding-details h3 {
-            margin: 0 0 0.25rem 0;
-            font-size: 1rem;
-            font-weight: 500;
+            margin: 0 0 0.5rem 0;
+            font-size: 1.1rem;
+            font-weight: 600;
         }
 
         .finding-details p {
             margin: 0;
             color: var(--text-muted);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
             line-height: 1.5;
         }
 
         .btn-remediate {
             background: transparent;
-            border: 1px solid var(--sec-safe);
-            color: var(--sec-safe);
-            padding: 0.5rem 1rem;
-            border-radius: 4px;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 0.6rem 1.2rem;
+            border-radius: 6px;
             font-family: var(--font-mono);
-            font-size: 0.75rem;
+            font-size: 0.8rem;
+            font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .btn-remediate:hover {
-            background: var(--sec-safe);
+            background: var(--accent-cyan);
             color: #000;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
         }
 
         /* TABLES FOR HISTORY */
         table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0 8px;
         }
         
         th, td {
             text-align: left;
-            padding: 1rem;
-            border-bottom: 1px solid var(--border-subtle);
+            padding: 1rem 1.5rem;
             font-family: var(--font-mono);
-            font-size: 0.85rem;
+            font-size: 0.9rem;
         }
 
         th {
@@ -307,6 +407,20 @@
             letter-spacing: 1px;
             font-family: var(--font-sans);
             font-size: 0.8rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        td {
+            background: rgba(255,255,255,0.02);
+        }
+        tr td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        tr td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+        /* TELEMETRY CHARTS */
+        .chart-container {
+            width: 100%;
+            height: 250px;
+            margin-top: 1rem;
         }
 
         #results-container { display: none; }
@@ -320,18 +434,18 @@
     <!-- SIDEBAR -->
     <div class="sidebar">
         <div class="brand">
-            <i data-lucide="shield" class="brand-icon"></i>
+            <i data-lucide="shield-alert" class="brand-icon"></i>
             DEFIANT
         </div>
         
         <div class="nav-item active" onclick="switchTab('dashboard')" id="nav-dashboard">
-            <i data-lucide="layout-dashboard" size="18"></i> Dashboard
+            <i data-lucide="layout-dashboard" size="18"></i> Posture Dashboard
         </div>
         <div class="nav-item" onclick="switchTab('telemetry')" id="nav-telemetry">
             <i data-lucide="activity" size="18"></i> Live Telemetry
         </div>
         <div class="nav-item" onclick="switchTab('history')" id="nav-history">
-            <i data-lucide="history" size="18"></i> Scan History
+            <i data-lucide="history" size="18"></i> Audit History
         </div>
     </div>
 
@@ -342,39 +456,72 @@
         <div id="view-dashboard" class="view-section active">
             <div class="header">
                 <div>
-                    <h1>Security Posture Overview</h1>
-                    <p id="system-info">System: STANDBY | Last Audit: NEVER</p>
+                    <h1>System Posture Overview</h1>
+                    <p id="system-info"><i data-lucide="server" size="14" style="margin-right: 4px; vertical-align: text-bottom;"></i> STANDBY | Last Audit: NEVER</p>
                 </div>
-                <button class="btn-scan" id="scanBtn" onclick="runScan()">
-                    <i data-lucide="radar" size="16"></i>
-                    <span id="btnText">INITIATE AUDIT</span>
-                    <i data-lucide="loader-2" class="loading-overlay spin" id="btnLoader" size="16"></i>
-                </button>
+                <div style="display: flex; gap: 1rem;">
+                    <button class="btn-scan" onclick="resetFIM()" style="background: transparent; border: 1px solid var(--accent-purple); color: var(--accent-purple); box-shadow: none;">
+                        <i data-lucide="refresh-ccw" size="18"></i>
+                        <span>RESET FIM</span>
+                    </button>
+                    <button class="btn-scan" id="scanBtn" onclick="runScan()">
+                        <i data-lucide="radar" size="18"></i>
+                        <span id="btnText">INITIATE AUDIT</span>
+                        <i data-lucide="loader-2" class="loading-overlay spin" id="btnLoader" size="18"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="progress-container" style="display: none; margin-bottom: 2rem; background: var(--bg-panel); border: 1px solid var(--accent-cyan); padding: 1rem; border-radius: 8px; box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--accent-cyan); text-transform: uppercase; letter-spacing: 1px;"><i data-lucide="loader" class="spin" size="14" style="vertical-align: middle; margin-right: 4px;"></i> Scan Progress</span>
+                    <span id="progress-status" style="font-family: var(--font-mono); font-size: 0.85rem; color: var(--text-main);">Initializing...</span>
+                </div>
+                <div style="height: 6px; width: 100%; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                    <div id="progress-bar" style="height: 100%; width: 0%; background: var(--accent-cyan); transition: width 0.3s ease; box-shadow: 0 0 10px var(--accent-cyan);"></div>
+                </div>
             </div>
 
             <div id="results-container">
                 <div class="top-grid">
-                    <div class="panel" style="margin-bottom:0;">
-                        <h2 class="panel-title"><i data-lucide="target" size="16"></i> Posture Score</h2>
-                        <div class="score-display">
-                            <div class="score-number" id="scoreValue" style="color: var(--sec-safe);">0</div>
-                            <div class="score-label" id="scoreMax">OUT OF 135</div>
+                    <!-- Gauge Panel -->
+                    <div class="panel">
+                        <h2 class="panel-title"><i data-lucide="crosshair" size="18"></i> Posture Score</h2>
+                        <div class="gauge-container">
+                            <svg viewBox="0 0 36 36" class="circular-chart">
+                                <path class="circle-bg"
+                                    d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                />
+                                <path class="circle" id="scoreCircle"
+                                    stroke-dasharray="0, 100"
+                                    d="M18 2.0845
+                                    a 15.9155 15.9155 0 0 1 0 31.831
+                                    a 15.9155 15.9155 0 0 1 0 -31.831"
+                                />
+                            </svg>
+                            <div class="gauge-text">
+                                <div class="score-number" id="scoreValue" style="color: var(--sec-safe);">0</div>
+                                <div class="score-label" id="scoreMax">OUT OF 175</div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="panel" style="margin-bottom:0;">
-                        <h2 class="panel-title"><i data-lucide="bar-chart-2" size="16"></i> Threat Intelligence</h2>
+                    <!-- Metrics Panel -->
+                    <div class="panel">
+                        <h2 class="panel-title"><i data-lucide="bar-chart-2" size="18"></i> Threat Intelligence</h2>
                         <div class="metrics-grid">
                             <div class="metric-card">
-                                <div class="metric-val" id="count-critical" style="color: var(--sec-critical);">0</div>
+                                <div class="metric-val" id="count-critical" style="color: var(--sec-critical); text-shadow: 0 0 15px var(--sec-critical);">0</div>
                                 <div class="metric-label">Critical Risks</div>
                             </div>
                             <div class="metric-card">
-                                <div class="metric-val" id="count-high" style="color: var(--sec-high);">0</div>
+                                <div class="metric-val" id="count-high" style="color: var(--sec-high); text-shadow: 0 0 15px var(--sec-high);">0</div>
                                 <div class="metric-label">High Risks</div>
                             </div>
                             <div class="metric-card">
-                                <div class="metric-val" id="count-total">0</div>
+                                <div class="metric-val" id="count-total" style="color: var(--text-main);">0</div>
                                 <div class="metric-label">Total Findings</div>
                             </div>
                         </div>
@@ -382,32 +529,36 @@
                 </div>
 
                 <div class="panel">
-                    <h2 class="panel-title"><i data-lucide="alert-triangle" size="16"></i> Active Vulnerabilities</h2>
+                    <h2 class="panel-title"><i data-lucide="alert-triangle" size="18"></i> Active Vulnerabilities</h2>
                     <div id="findingsList"></div>
                 </div>
             </div>
         </div>
 
-        <!-- TELEMETRY VIEW -->
+        <!-- TELEMETRY VIEW (Charts) -->
         <div id="view-telemetry" class="view-section">
             <div class="header">
                 <div>
-                    <h1>Live System Telemetry</h1>
-                    <p>Real-time endpoint performance tracking.</p>
+                    <h1>Live Telemetry & Anomaly Tracking</h1>
+                    <p>Real-time endpoint performance streaming via psutil.</p>
                 </div>
             </div>
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-val" id="tele-cpu">0%</div>
-                    <div class="metric-label">CPU Usage</div>
+            
+            <div class="top-grid" style="grid-template-columns: 1fr 1fr; margin-bottom: 0;">
+                <div class="panel">
+                    <h2 class="panel-title"><i data-lucide="cpu" size="18"></i> CPU Utilization</h2>
+                    <div class="metric-val" id="tele-cpu" style="font-size: 1.5rem; margin-bottom: 0;">0%</div>
+                    <div class="chart-container">
+                        <canvas id="cpuChart"></canvas>
+                    </div>
                 </div>
-                <div class="metric-card">
-                    <div class="metric-val" id="tele-ram">0%</div>
-                    <div class="metric-label">RAM Usage</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-val" id="tele-ram-gb">0 / 0 GB</div>
-                    <div class="metric-label">Memory Allocation</div>
+                
+                <div class="panel">
+                    <h2 class="panel-title"><i data-lucide="memory-stick" size="18"></i> Memory Allocation</h2>
+                    <div class="metric-val" id="tele-ram-gb" style="font-size: 1.5rem; margin-bottom: 0;">0 / 0 GB</div>
+                    <div class="chart-container">
+                        <canvas id="ramChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
@@ -416,14 +567,22 @@
         <div id="view-history" class="view-section">
             <div class="header">
                 <div>
-                    <h1>Scan History</h1>
-                    <p>Previous audits and posture scores.</p>
+                    <h1>Compliance Audit History</h1>
+                    <p>Persistent SQLite storage of historical scans.</p>
                 </div>
-                <button class="btn-scan" onclick="loadHistory()">
+                <button class="btn-scan" onclick="loadHistory()" style="background: transparent; border: 1px solid var(--text-main); color: var(--text-main); box-shadow: none;">
                     <i data-lucide="refresh-cw" size="16"></i>
                     <span>REFRESH</span>
                 </button>
             </div>
+            
+            <div class="panel" style="margin-bottom: 2rem;">
+                <h2 class="panel-title"><i data-lucide="trending-up" size="18"></i> Posture Trend</h2>
+                <div class="chart-container" style="height: 200px;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+
             <div class="panel">
                 <table id="historyTable">
                     <thead>
@@ -432,12 +591,11 @@
                             <th>Timestamp</th>
                             <th>Hostname</th>
                             <th>Earned</th>
-                            <th>Total Possible</th>
                             <th>Health %</th>
                         </tr>
                     </thead>
                     <tbody id="historyBody">
-                        <tr><td colspan="6" style="text-align:center;">No scan history found.</td></tr>
+                        <tr><td colspan="5" style="text-align:center;">No scan history found.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -448,22 +606,48 @@
     <script>
         lucide.createIcons();
         let telemetryInterval = null;
+        
+        // Setup Chart.js
+        Chart.defaults.color = '#8e8e93';
+        Chart.defaults.font.family = "'JetBrains Mono', monospace";
+        
+        const commonOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                x: { display: false }
+            },
+            plugins: { legend: { display: false } },
+            animation: { duration: 0 }
+        };
+
+        const cpuCtx = document.getElementById('cpuChart').getContext('2d');
+        const cpuChart = new Chart(cpuCtx, {
+            type: 'line',
+            data: { labels: Array(20).fill(''), datasets: [{ data: Array(20).fill(0), borderColor: '#00f0ff', backgroundColor: 'rgba(0, 240, 255, 0.1)', borderWidth: 2, fill: true, tension: 0.4 }] },
+            options: commonOptions
+        });
+
+        const ramCtx = document.getElementById('ramChart').getContext('2d');
+        const ramChart = new Chart(ramCtx, {
+            type: 'line',
+            data: { labels: Array(20).fill(''), datasets: [{ data: Array(20).fill(0), borderColor: '#7000ff', backgroundColor: 'rgba(112, 0, 255, 0.1)', borderWidth: 2, fill: true, tension: 0.4 }] },
+            options: commonOptions
+        });
 
         // TAB SWITCHING LOGIC
         function switchTab(tabId) {
-            // Update nav
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
             document.getElementById('nav-' + tabId).classList.add('active');
             
-            // Update views
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.getElementById('view-' + tabId).classList.add('active');
 
-            // Handle background tasks
             if (telemetryInterval) clearInterval(telemetryInterval);
             if (tabId === 'telemetry') {
-                loadTelemetry(); // load instantly
-                telemetryInterval = setInterval(loadTelemetry, 2000); // then every 2s
+                loadTelemetry(); 
+                telemetryInterval = setInterval(loadTelemetry, 1500);
             } else if (tabId === 'history') {
                 loadHistory();
             }
@@ -475,14 +659,24 @@
                 const res = await fetch('/api/telemetry');
                 const data = await res.json();
                 if(data.success) {
-                    document.getElementById('tele-cpu').innerText = data.cpu_percent + '%';
-                    document.getElementById('tele-ram').innerText = data.ram_percent + '%';
-                    document.getElementById('tele-ram-gb').innerText = `${data.ram_used_gb} / ${data.ram_total_gb} GB`;
+                    document.getElementById('tele-cpu').innerText = data.cpu_percent + '% CPU';
+                    document.getElementById('tele-ram-gb').innerText = `${data.ram_used_gb} / ${data.ram_total_gb} GB (${data.ram_percent}%)`;
+                    
+                    // Update Charts
+                    const cData = cpuChart.data.datasets[0].data;
+                    cData.push(data.cpu_percent);
+                    cData.shift();
+                    cpuChart.update();
+
+                    const rData = ramChart.data.datasets[0].data;
+                    rData.push(data.ram_percent);
+                    rData.shift();
+                    ramChart.update();
                 }
-            } catch(e) {
-                console.error("Telemetry failed: ", e);
-            }
+            } catch(e) { console.error("Telemetry failed: ", e); }
         }
+
+        let trendChartInstance = null;
 
         // HISTORY API
         async function loadHistory() {
@@ -492,28 +686,80 @@
                 if(data.success && data.history.length > 0) {
                     const tbody = document.getElementById('historyBody');
                     tbody.innerHTML = '';
+                    
+                    const labels = [];
+                    const scores = [];
+                    
+                    // The API returns DESC, so we iterate backwards for the chart
+                    for(let i = data.history.length - 1; i >= 0; i--) {
+                        labels.push(new Date(data.history[i].timestamp).toLocaleDateString());
+                        scores.push(data.history[i].percentage);
+                    }
+                    
+                    if (trendChartInstance) {
+                        trendChartInstance.destroy();
+                    }
+                    const tCtx = document.getElementById('trendChart').getContext('2d');
+                    trendChartInstance = new Chart(tCtx, {
+                        type: 'line',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Health Score %',
+                                data: scores,
+                                borderColor: 'rgba(255, 255, 255, 0.8)',
+                                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.3
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' } },
+                                x: { grid: { display: false } }
+                            },
+                            plugins: { legend: { display: false } }
+                        }
+                    });
+
                     data.history.forEach(scan => {
-                        // color coding for percentage
                         let color = 'var(--sec-safe)';
                         if (scan.percentage < 80) color = 'var(--sec-high)';
                         if (scan.percentage < 60) color = 'var(--sec-critical)';
 
                         tbody.innerHTML += `
                             <tr>
-                                <td>#${scan.id}</td>
+                                <td style="color: var(--accent-cyan);">#${scan.id}</td>
                                 <td>${new Date(scan.timestamp).toLocaleString()}</td>
                                 <td>${scan.hostname}</td>
-                                <td>${scan.total_earned}</td>
-                                <td>${scan.total_possible}</td>
-                                <td style="color: ${color}; font-weight: bold;">${scan.percentage}%</td>
+                                <td>${scan.total_earned} / ${scan.total_possible}</td>
+                                <td>
+                                    <div style="background: rgba(255,255,255,0.05); border-radius: 4px; padding: 4px 8px; display: inline-block; color: ${color}; font-weight: bold; border: 1px solid ${color}; box-shadow: inset 0 0 10px ${color}20;">
+                                        ${scan.percentage}%
+                                    </div>
+                                </td>
                             </tr>
                         `;
                     });
                 }
-            } catch (err) {
-                console.error("History failed: ", err);
+            } catch (err) { console.error("History failed: ", err); }
+        }
+
+        async function resetFIM() {
+            if(!confirm("Are you sure you want to reset FIM baselines?")) return;
+            try {
+                const res = await fetch('/api/fim/reset', { method: 'POST' });
+                const data = await res.json();
+                alert(data.message || data.error);
+            } catch(e) {
+                alert("Failed to reset FIM.");
             }
         }
+
+        let progressInterval = null;
 
         // MAIN SCAN API
         async function runScan() {
@@ -524,6 +770,26 @@
             btn.disabled = true;
             btnText.innerText = 'AUDITING...';
             btnLoader.style.display = 'inline-block';
+            
+            // Show progress bar container if we create one
+            const progressContainer = document.getElementById('progress-container');
+            if (progressContainer) {
+                progressContainer.style.display = 'block';
+            }
+
+            // Start polling progress
+            progressInterval = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/scan/progress');
+                    const data = await res.json();
+                    const statusText = document.getElementById('progress-status');
+                    const progressBar = document.getElementById('progress-bar');
+                    if (statusText && progressBar) {
+                        statusText.innerText = data.message || "Scanning...";
+                        progressBar.style.width = data.percentage + "%";
+                    }
+                } catch(e) {}
+            }, 1000);
 
             try {
                 const response = await fetch('/api/scan', { method: 'POST' });
@@ -535,15 +801,16 @@
                     alert("Scan failed: " + data.error);
                 }
             } catch (err) {
-                if (window.location.protocol === 'file:') {
-                    alert("ERROR: You opened the HTML file directly. Please access the dashboard via http://127.0.0.1:5000");
-                } else {
-                    alert("Network Error: " + err.message + "\nMake sure the Flask server (app.py) is running.");
-                }
+                alert("Network Error: " + err.message + "\nMake sure the Flask server is running.");
             } finally {
+                if (progressInterval) clearInterval(progressInterval);
                 btn.disabled = false;
                 btnText.innerText = 'RE-SCAN SYSTEM';
                 btnLoader.style.display = 'none';
+                
+                if (progressContainer) {
+                    setTimeout(() => { progressContainer.style.display = 'none'; }, 2000);
+                }
             }
         }
 
@@ -553,7 +820,8 @@
             // Set System Info
             const host = data.system_info['Computer Name'] || 'UNKNOWN';
             const now = new Date().toLocaleTimeString();
-            document.getElementById('system-info').innerText = `System: ${host} | Last Audit: ${now}`;
+            document.getElementById('system-info').innerHTML = `<i data-lucide="server" size="14" style="margin-right: 4px; vertical-align: text-bottom;"></i> SYSTEM: ${host} | LAST AUDIT: ${now}`;
+            lucide.createIcons();
 
             // Render Score
             const total = data.score.total_earned;
@@ -561,12 +829,21 @@
             const pct = (total / possible) * 100;
             
             const scoreEl = document.getElementById('scoreValue');
+            const circleEl = document.getElementById('scoreCircle');
             scoreEl.innerText = total;
             document.getElementById('scoreMax').innerText = `OUT OF ${possible}`;
             
-            if(pct >= 80) scoreEl.style.color = 'var(--sec-safe)';
-            else if(pct >= 60) scoreEl.style.color = 'var(--sec-high)';
-            else scoreEl.style.color = 'var(--sec-critical)';
+            let colorStr = 'var(--sec-safe)';
+            if(pct < 80) colorStr = 'var(--sec-high)';
+            if(pct < 60) colorStr = 'var(--sec-critical)';
+            
+            scoreEl.style.color = colorStr;
+            circleEl.style.stroke = colorStr;
+            
+            // Animate Gauge
+            setTimeout(() => {
+                circleEl.style.strokeDasharray = `${pct}, 100`;
+            }, 100);
 
             // Render Findings & Counts
             const list = document.getElementById('findingsList');
@@ -576,7 +853,7 @@
 
             data.findings.forEach(f => {
                 if(typeof f !== 'object') return;
-                if(f.severity === 'INFO') return; // Hide INFO
+                if(f.severity === 'INFO') return;
                 
                 counts.TOTAL++;
                 if(f.severity === 'CRITICAL') counts.CRITICAL++;
@@ -586,8 +863,8 @@
                 row.className = 'finding-row';
                 
                 let fixBtn = '';
-                if(f.id) {
-                    fixBtn = `<button class="btn-remediate" onclick="fixFinding('${f.id}')">DEPLOY FIX</button>`;
+                if(f.id && !f.id.includes("FIM") && !f.id.includes("ML") && !f.id.includes("SOFT") && !f.id.includes("START")) {
+                    fixBtn = `<button class="btn-remediate" onclick="fixFinding('${f.id}')"><i data-lucide="wrench" size="14" style="vertical-align: middle; margin-right: 4px;"></i> DEPLOY FIX</button>`;
                 }
 
                 row.innerHTML = `
@@ -600,6 +877,7 @@
                 `;
                 list.appendChild(row);
             });
+            lucide.createIcons();
 
             // Update Metrics
             document.getElementById('count-critical').innerText = counts.CRITICAL;
@@ -607,7 +885,7 @@
             document.getElementById('count-total').innerText = counts.TOTAL;
 
             if(counts.TOTAL === 0) {
-                list.innerHTML = '<div style="text-align:center; padding: 3rem; color: var(--sec-safe); font-family: var(--font-mono);">[ NO VULNERABILITIES DETECTED. SYSTEM IS SECURE. ]</div>';
+                list.innerHTML = '<div style="text-align:center; padding: 4rem; color: var(--sec-safe); font-family: var(--font-mono); font-size: 1.2rem; text-shadow: 0 0 20px var(--sec-safe);">[ NO VULNERABILITIES DETECTED. SYSTEM IS SECURE. ]</div>';
             }
         }
 
@@ -625,7 +903,7 @@
                 
                 if(data.success) {
                     alert('SUCCESS: ' + data.message);
-                    runScan(); // Refresh
+                    runScan(); 
                 } else {
                     alert('FAILURE: ' + data.message);
                 }

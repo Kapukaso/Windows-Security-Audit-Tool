@@ -35,9 +35,16 @@ def get_local_users():
 
 
 def assess_users(users):
-    """Create security findings from local user-account data."""
+    """Create structured dict security findings from local user-account data."""
     if isinstance(users, dict) and "error" in users:
-        return [users["error"]]
+        return [{
+            "id": "USR-ERR",
+            "category": "Users",
+            "severity": "HIGH",
+            "title": "User Account Data Unavailable",
+            "description": users["error"],
+            "recommendation": "Ensure you are running as Administrator."
+        }]
 
     findings = []
     enabled_admins = 0
@@ -48,25 +55,27 @@ def assess_users(users):
         is_admin = user.get("IsAdministrator", False)
 
         if name.lower() == "guest" and enabled:
-            findings.append("❌ The built-in Guest account is enabled")
-        elif name.lower() == "guest":
-            findings.append("✅ The built-in Guest account is disabled")
+            findings.append({
+                "id": "USR-001",
+                "category": "Users",
+                "severity": "HIGH",
+                "title": "Guest Account Enabled",
+                "description": "The built-in Guest account is enabled, allowing unauthenticated access.",
+                "recommendation": "Disable the Guest account via 'net user guest /active:no'."
+            })
 
         if enabled and is_admin:
             enabled_admins += 1
-            findings.append(f"⚠️ {name} is an enabled local administrator")
 
-        if not enabled:
-            findings.append(f"ℹ️ {name} is disabled")
-
-    if enabled_admins == 0:
-        findings.append("✅ No enabled local administrator accounts were found")
-    elif enabled_admins == 1:
-        findings.append("✅ One enabled local administrator account was found")
-    else:
-        findings.append(
-            f"⚠️ {enabled_admins} enabled local administrator accounts were found"
-        )
+    if enabled_admins > 2:
+        findings.append({
+            "id": "USR-002",
+            "category": "Users",
+            "severity": "MEDIUM",
+            "title": f"Excessive Local Administrators ({enabled_admins})",
+            "description": f"{enabled_admins} enabled local administrator accounts were found. Attackers who compromise any one of these accounts gain full system access.",
+            "recommendation": "Reduce local administrator accounts to the minimum required. Prefer using standard accounts for daily use."
+        })
 
     return findings
 

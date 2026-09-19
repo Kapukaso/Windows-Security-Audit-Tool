@@ -59,45 +59,77 @@ def get_defender_status():
 
 def assess_defender(status):
     """
-    Evaluates the Defender status and generates findings.
+    Evaluates the Defender status and generates structured dict findings.
 
     Args:
         status (dict): Output from get_defender_status()
 
     Returns:
-        list[str]: Security findings
+        list[dict]: Security findings in standard dict format
     """
 
     findings = []
 
     if "error" in status:
-        findings.append(status["error"])
+        findings.append({
+            "id": "DEF-ERR",
+            "category": "Defender",
+            "severity": "HIGH",
+            "title": "Defender Status Unavailable",
+            "description": status["error"],
+            "recommendation": "Ensure you are running as Administrator."
+        })
         return findings
 
-    if status.get("AntivirusEnabled"):
-        findings.append("✅ Antivirus is enabled")
-    else:
-        findings.append("❌ Antivirus is disabled")
+    if not status.get("AntivirusEnabled"):
+        findings.append({
+            "id": "DEF-001",
+            "category": "Defender",
+            "severity": "CRITICAL",
+            "title": "Antivirus Disabled",
+            "description": "Windows Defender Antivirus is not enabled on this system.",
+            "recommendation": "Enable Windows Defender Antivirus immediately."
+        })
 
-    if status.get("RealTimeProtectionEnabled"):
-        findings.append("✅ Real-time protection is enabled")
-    else:
-        findings.append("⚠️ Real-time protection is disabled")
+    if not status.get("RealTimeProtectionEnabled"):
+        findings.append({
+            "id": "DEF-002",
+            "category": "Defender",
+            "severity": "HIGH",
+            "title": "Real-Time Protection Disabled",
+            "description": "Defender real-time protection is off. Malware can run undetected.",
+            "recommendation": "Enable Real-Time Protection in Windows Security settings."
+        })
 
-    if status.get("BehaviorMonitorEnabled"):
-        findings.append("✅ Behavior monitoring is enabled")
-    else:
-        findings.append("⚠️ Behavior monitoring is disabled")
+    if not status.get("BehaviorMonitorEnabled"):
+        findings.append({
+            "id": "DEF-003",
+            "category": "Defender",
+            "severity": "MEDIUM",
+            "title": "Behavior Monitoring Disabled",
+            "description": "Behavior monitoring is off. Suspicious process activity may go undetected.",
+            "recommendation": "Enable Behavior Monitoring in Defender settings."
+        })
 
-    if status.get("IoavProtectionEnabled"):
-        findings.append("✅ Download protection is enabled")
-    else:
-        findings.append("⚠️ Download protection is disabled")
+    if not status.get("IoavProtectionEnabled"):
+        findings.append({
+            "id": "DEF-004",
+            "category": "Defender",
+            "severity": "MEDIUM",
+            "title": "Download Protection Disabled",
+            "description": "IOAV (download/attachment scanning) is disabled.",
+            "recommendation": "Enable cloud-delivered protection and download scanning."
+        })
 
-    if status.get("NISEnabled"):
-        findings.append("✅ Network Inspection System is enabled")
-    else:
-        findings.append("⚠️ Network Inspection System is disabled")
+    if not status.get("NISEnabled"):
+        findings.append({
+            "id": "DEF-005",
+            "category": "Defender",
+            "severity": "MEDIUM",
+            "title": "Network Inspection System Disabled",
+            "description": "Defender NIS is not monitoring network traffic for exploit patterns.",
+            "recommendation": "Enable the Network Inspection System in Defender settings."
+        })
 
     return findings
 

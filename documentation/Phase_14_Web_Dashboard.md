@@ -1,15 +1,29 @@
-# Phase 14: Web Dashboard & EDR Interface
+# Phase 14: Next-Generation Web Dashboard
 
-## 14.1 Academic Overview
-CLI tools are hostile to non-technical analysts. Phase 14 transforms the backend scripts into an Enterprise Endpoint Detection and Response (EDR) platform using modern web technologies.
+## 14.1 Academic Overview & Motivation
+An Endpoint Detection and Response (EDR) platform is useless if security analysts cannot quickly interpret its findings. Phase 14 transitions the project from a command-line interface into a fully asynchronous, Single Page Application (SPA) dashboard. 
 
-## 14.2 Architecture (REST API)
-The backend utilizes the **Flask** micro-framework. It binds to `127.0.0.1:5000` and serves RESTful JSON endpoints:
-- `POST /api/scan`: Triggers the heavy 10-phase audit and returns the JSON payload.
-- `GET /api/history`: Queries SQLite and returns historical scan data.
-- `GET /api/telemetry`: Queries `psutil` and returns CPU/RAM allocation.
+This UI aligns with the **NIST Cybersecurity Framework (CSF) PR.AT (Awareness and Training)** by presenting vulnerabilities in a clear, human-readable format, preventing alert fatigue.
 
-## 14.3 Frontend SPA (Single Page Application)
-The `dashboard.html` file acts as the view layer.
-- **Aesthetics:** Uses a deep `#050505` background, `lucide-icons`, and `JetBrains Mono` fonts to mimic the UI/UX of premium tools like SentinelOne or Datadog.
-- **Asynchronous UX:** Vanilla JavaScript uses the `fetch()` API and `async/await` syntax to hit the Flask endpoints. It dynamically updates the DOM and the Circular Risk Gauge without ever triggering a full page reload, resulting in a highly fluid, app-like experience.
+## 14.2 Technical Implementation (Glassmorphism & Chart.js)
+The frontend uses a modern "Glassmorphism" aesthetic built with native CSS, eliminating heavy frontend frameworks like React to keep the executable lightweight.
+
+### Asynchronous Fetch API
+When the user clicks "Initiate Audit", the UI does not freeze. It uses JavaScript's `fetch()` API to make a non-blocking POST request to the Flask backend.
+
+### Live Telemetry (Chart.js)
+The platform streams real-time CPU and RAM metrics via a `/api/telemetry` endpoint. 
+```javascript
+const cpuChart = new Chart(cpuCtx, {
+    type: 'line',
+    data: { 
+        labels: Array(20).fill(''), 
+        datasets: [{ data: Array(20).fill(0), borderColor: '#00f0ff' }] 
+    }
+});
+```
+This data dynamically updates the `Chart.js` line graphs every 1.5 seconds, mimicking enterprise tools like CrowdStrike or Windows Task Manager.
+
+## 14.3 Visual Analytics & Gamification
+- **SVG Circular Gauge:** The primary risk score is rendered using a scalable Vector Graphic (SVG) circle. The `stroke-dasharray` property is dynamically calculated using JavaScript to fill the circle based on the `(total_earned / total_possible) * 100` formula.
+- **Cyberpunk Color Palette:** Severity levels are mapped to specific neon hex codes (e.g., `#ff2a55` for CRITICAL) to immediately draw the analyst's eye to high-priority threats.

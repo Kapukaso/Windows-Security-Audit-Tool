@@ -41,8 +41,45 @@ def init_db():
     )
     ''')
     
+    # Create Telemetry table for ML baseline
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS telemetry_log (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        timestamp TEXT,
+        cpu_percent REAL,
+        ram_percent REAL
+    )
+    ''')
+    
     conn.commit()
     conn.close()
+
+def save_telemetry(cpu_percent, ram_percent):
+    """Saves CPU and RAM telemetry to the database."""
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    timestamp = datetime.now().isoformat()
+    cursor.execute('''
+        INSERT INTO telemetry_log (timestamp, cpu_percent, ram_percent)
+        VALUES (?, ?, ?)
+    ''', (timestamp, cpu_percent, ram_percent))
+    conn.commit()
+    conn.close()
+
+def get_telemetry_baseline(limit=200):
+    """Retrieves recent telemetry data for ML baseline."""
+    init_db()
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT cpu_percent, ram_percent
+        FROM telemetry_log
+        ORDER BY id DESC LIMIT ?
+    ''', (limit,))
+    rows = cursor.fetchall()
+    conn.close()
+    return rows
 
 def save_scan_results(system_info, score_data, all_findings):
     """

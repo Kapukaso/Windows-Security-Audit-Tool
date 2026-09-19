@@ -24,17 +24,29 @@ def get_firewall_status():
 
 
 def assess_firewall(status):
-    """Return findings for each firewall profile."""
+    """Return structured dict findings for each disabled firewall profile."""
     if isinstance(status, dict) and "error" in status:
-        return [status["error"]]
+        return [{
+            "id": "FW-ERR",
+            "category": "Firewall",
+            "severity": "HIGH",
+            "title": "Firewall Status Unavailable",
+            "description": status["error"],
+            "recommendation": "Ensure you are running as Administrator."
+        }]
 
     findings = []
     for profile in status:
         name = profile.get("Name", "Unknown")
-        if profile.get("Enabled"):
-            findings.append(f"✅ {name} firewall profile is enabled")
-        else:
-            findings.append(f"❌ {name} firewall profile is disabled")
+        if not profile.get("Enabled"):
+            findings.append({
+                "id": "FW-001",
+                "category": "Firewall",
+                "severity": "CRITICAL",
+                "title": f"Firewall Profile Disabled: {name}",
+                "description": f"The '{name}' Windows Firewall profile is currently disabled.",
+                "recommendation": f"Enable the '{name}' firewall profile via Windows Security or 'netsh advfirewall set allprofiles state on'."
+            })
 
     return findings
 
@@ -44,5 +56,7 @@ def firewall_score(status):
     if isinstance(status, dict) and "error" in status:
         return 0
 
-    enabled_profiles = sum(profile.get("Enabled") is True for profile in status)
+    # PowerShell returns Enabled as integer 1/0, not Python True/False
+    # so we must use bool() rather than 'is True'
+    enabled_profiles = sum(bool(profile.get("Enabled")) for profile in status)
     return round((enabled_profiles / 3) * 10)

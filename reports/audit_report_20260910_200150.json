@@ -1,0 +1,95 @@
+{
+    "timestamp": "2026-09-10T20:01:50.285593",
+    "score_summary": {
+        "category_scores": {
+            "Defender": 20,
+            "Firewall": 20,
+            "Users": 15,
+            "Password Policy": 10,
+            "Updates": 15,
+            "Network": 8,
+            "Services": 10,
+            "Startup": 10,
+            "Software": 0,
+            "Event Logs": 10,
+            "Registry": 8,
+            "FIM": 20,
+            "Anomalies": 20
+        },
+        "total_earned": 166,
+        "total_possible": 190
+    },
+    "findings": [
+        {
+            "id": "SOFT-001",
+            "title": "Software with Unknown Publisher",
+            "category": "Software",
+            "severity": "LOW",
+            "description": "The software 'Rustup: the Rust toolchain installer' does not have a verified publisher.",
+            "recommendation": "Verify if this software is legitimate or remove it if unnecessary."
+        },
+        {
+            "id": "CVE-001",
+            "category": "Software",
+            "severity": "HIGH",
+            "title": "Known Vulnerability in Cisco Packet Tracer 9.0.1 64Bit",
+            "description": "The NIST NVD reports vulnerabilities (e.g. CVE-1999-1216) for this software. Details: Cisco routers 9.17 and earlier allow remote attackers to bypass security restrictions via certain IP source routed packets that should normally be den...",
+            "recommendation": "Update Cisco Packet Tracer 9.0.1 64Bit to the latest version immediately or uninstall it."
+        },
+        {
+            "id": "CVE-001",
+            "category": "Software",
+            "severity": "HIGH",
+            "title": "Known Vulnerability in Git",
+            "description": "The NIST NVD reports vulnerabilities (e.g. CVE-2006-0477) for this software. Details: Buffer overflow in git-checkout-index in GIT before 1.1.5 allows remote attackers to execute arbitrary code via an index file with a long symbolic lin...",
+            "recommendation": "Update Git to the latest version immediately or uninstall it."
+        },
+        {
+            "id": "CVE-001",
+            "category": "Software",
+            "severity": "HIGH",
+            "title": "Known Vulnerability in PostgreSQL 18",
+            "description": "The NIST NVD reports vulnerabilities (e.g. CVE-2017-8806) for this software. Details: The Debian pg_ctlcluster, pg_createcluster, and pg_upgradecluster scripts, as distributed in the Debian postgresql-common package before 181+deb9u1 fo...",
+            "recommendation": "Update PostgreSQL 18 to the latest version immediately or uninstall it."
+        },
+        {
+            "id": "NET-002",
+            "title": "Windows File Sharing (SMB) Exposed",
+            "category": "Network",
+            "severity": "MEDIUM",
+            "description": "SMB/NetBIOS (Port 445) is listening on all network interfaces.",
+            "recommendation": "Ensure SMBv1 is disabled and avoid exposing SMB directly to untrusted networks."
+        },
+        {
+            "id": "POL-001",
+            "title": "Weak Minimum Password Length",
+            "category": "Password Policy",
+            "severity": "HIGH",
+            "description": "The minimum password length is set to 0 characters.",
+            "recommendation": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+        },
+        {
+            "id": "ML-ERR",
+            "category": "Anomalies",
+            "severity": "INFO",
+            "title": "ML Engine Unavailable",
+            "description": "scikit-learn is not installed. Anomaly detection skipped."
+        },
+        {
+            "id": "REG-002",
+            "category": "Registry",
+            "severity": "HIGH",
+            "title": "Weak LAN Manager Auth Level",
+            "description": "LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.",
+            "recommendation": "Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM."
+        },
+        {
+            "id": "REG-004",
+            "category": "Registry",
+            "severity": "MEDIUM",
+            "title": "SMB Signing Not Enforced",
+            "description": "SMB communication may be vulnerable to relay attacks.",
+            "recommendation": "Set RequireSecuritySignature to 1."
+        }
+    ]
+}
