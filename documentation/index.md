@@ -39,9 +39,12 @@ These phases cover the analytical, persistence, UI, testing, and advanced securi
 * [Phase 19: Deployment](Phase_19_Deployment.md) - Deployment and packaging guides.
 * [Phase 20: CVE Lookup](Phase_20_CVE_Lookup.md) - NIST NVD vulnerability lookup for software (`modules/cve_lookup.py`).
 * [Phase 21: Registry Security](Phase_21_Registry_Security.md) - Audits critical Windows Registry configurations (`modules/registry.py`).
+<<<<<<< Updated upstream
 * [Phase 22: Frontend HUD Upgrade](Phase_22_Frontend_HUD_Upgrade.md) - Rebuilding the UI into a Sci-Fi HUD using Tailwind CSS.
 * [Phase 23: Advanced Remediation & CVE Upgrades](Phase_23_Advanced_Remediation_and_CVE_Upgrades.md) - Winget integration, Playbook Modals, UI Caching, and NIST API persistence.
 * [Phase 24: Concurrency & Utilities](Phase_24_Concurrency_and_Utilities.md) - Asynchronous multi-threading for data collection and standardized OS utilities.
+=======
+>>>>>>> Stashed changes
 
 ## System Workflow Diagram
 
