@@ -98,10 +98,43 @@ def apply_remediation(finding_id):
     # Services (Example)
     # -------------------------
     elif finding_id == "SVC-001":
-        return {"success": False, "message": "Unquoted service paths require manual Registry editing to prevent breaking the application."}
+        return {
+            "success": False, 
+            "message": "Unquoted service paths require manual Registry editing to prevent breaking the application.",
+            "playbook": "MANUAL PLAYBOOK:\n1. Open regedit.exe\n2. Navigate to HKLM\\System\\CurrentControlSet\\Services\n3. Locate the vulnerable service.\n4. Enclose the ImagePath value in double quotes (\").\n5. Restart the service."
+        }
+
+    # -------------------------
+    # Software CVEs (winget + Playbook)
+    # -------------------------
+    elif finding_id.startswith("CVE|"):
+        app_name = finding_id.split("|", 1)[1]
+        try:
+            # Attempt automated patch via winget
+            cmd = ["winget", "upgrade", app_name, "--silent", "--accept-source-agreements", "--accept-package-agreements"]
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0 and "No installed package found matching input criteria" not in result.stdout:
+                return {"success": True, "message": f"Successfully patched {app_name} via winget."}
+            else:
+                return {
+                    "success": False, 
+                    "message": f"Winget failed to auto-patch {app_name}.",
+                    "playbook": f"MANUAL PLAYBOOK:\n1. Open Control Panel > Programs and Features.\n2. Uninstall '{app_name}'.\n3. Navigate to the official vendor website.\n4. Download and install the latest secure version."
+                }
+        except Exception as e:
+            return {
+                "success": False, 
+                "message": f"Winget command failed or is not installed.",
+                "playbook": f"MANUAL PLAYBOOK:\n1. Open Control Panel > Programs and Features.\n2. Uninstall '{app_name}'.\n3. Navigate to the official vendor website.\n4. Download and install the latest secure version."
+            }
 
     # -------------------------
     # Default Fallback
     # -------------------------
     else:
-        return {"success": False, "message": f"Automated remediation is not yet supported or safe for finding {finding_id}."}
+        return {
+            "success": False, 
+            "message": f"Automated remediation is not yet supported or safe for finding {finding_id}.",
+            "playbook": f"MANUAL PLAYBOOK:\n1. Open your IT Administrator documentation for {finding_id}.\n2. Apply the necessary manual system configuration.\n3. Run a new audit to verify the fix."
+        }

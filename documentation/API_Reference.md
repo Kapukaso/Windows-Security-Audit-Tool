@@ -90,3 +90,49 @@ Returns real-time hardware telemetry utilizing the `psutil` library. Used to dri
 * `ram_percent` (float): Current physical memory usage percentage.
 * `ram_used_gb` (float): Amount of RAM in use (in Gigabytes).
 * `ram_total_gb` (float): Total physical RAM installed (in Gigabytes).
+
+---
+
+## 5. Get Scan Progress
+Retrieves the real-time progress of a running asynchronous scan.
+
+**Endpoint:** `/api/scan/progress`
+**Method:** `GET`
+
+### Request Body
+*None required.*
+
+### Response (JSON)
+* `status` (string): The current status (`idle`, `running`, `error`).
+* `message` (string): Human-readable progress description (e.g., `Checking CVE Database...`).
+* `percentage` (integer): Completion percentage (0-100).
+
+---
+
+## 6. Reset FIM Baselines
+Drops the existing File Integrity Monitoring (FIM) baselines from the database. The next scan will automatically establish new secure baselines.
+
+**Endpoint:** `/api/fim/reset`
+**Method:** `POST`
+
+### Request Body
+*None required.*
+
+### Response (JSON)
+* `success` (boolean): Indicates if the reset was successful.
+* `message` (string): Confirmation message.
+
+---
+
+## 7. Shutdown Server
+Gracefully terminates the background Flask process. Used by the UI when the user exits the platform.
+
+**Endpoint:** `/api/shutdown`
+**Method:** `POST`
+
+### Request Body
+*None required.*
+
+### Response (JSON)
+* `success` (boolean): Always true upon receipt.
+* `message` (string): Confirmation message before the server exits.

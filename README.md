@@ -13,7 +13,7 @@
 This project was designed to automate the traditionally manual process of checking a Windows machine for security misconfigurations. Rather than dumping raw data into a CLI, it aggregates findings through a central Risk Scoring Engine and presents them on a decoupled, modern web dashboard.
 
 ### Core Capabilities
-1. **Automated Auditing (10 Phases):** Analyzes Windows Defender, Firewalls, User Accounts, Password Policies, Open Ports, Active Services, Startup Apps, Installed Software, Windows Updates, and Event Logs.
+1. **Automated Auditing (14+ Phases):** Analyzes Windows Defender, Firewalls, User Accounts, Password Policies, Open Ports, Active Services, Startup Apps, Installed Software, Windows Updates, Event Logs, Windows Registry, Software CVEs, File Integrity (FIM), and ML Anomaly Detection.
 2. **Mathematical Risk Scoring:** Evaluates findings based on Severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) and deducts points from 10 distinct, weighted categories to generate an overall health percentage out of 135 total points.
 3. **Automated Remediation:** Features a "Do No Harm" hardening engine. It allows 1-click automated fixes for safe configurations (like Password Lengths) while safely flagging complex software uninstalls for manual review.
 4. **Live Telemetry:** Streams real-time CPU and RAM allocation to the dashboard.

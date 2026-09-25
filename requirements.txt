@@ -5,3 +5,4 @@ colorama
 tabulate 
 wmi
 flask
+flask-cors

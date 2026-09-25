@@ -139,10 +139,6 @@
 
     <!-- MAIN CONTENT -->
     <div class="ml-[280px] flex-1 p-12 max-w-7xl relative">
-        <div class="bg-hud-alert/10 border border-hud-alert text-hud-alert p-3 mb-6 font-mono text-sm tracking-widest text-center flex items-center justify-center gap-2">
-            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-            WARNING: IF YOU CLOSE THIS BROWSER WINDOW WITHOUT CLICKING "SHUTDOWN SYSTEM", YOU MUST KILL THE PROCESS MANUALLY FROM TASK MANAGER.
-        </div>
         
         <!-- DASHBOARD VIEW -->
         <div id="view-dashboard" class="view-section active">
@@ -155,9 +151,6 @@
                     </p>
                 </div>
                 <div class="flex gap-4">
-                    <button onclick="shutdownServer()" class="clip-btn bg-hud-alert/10 text-hud-alert border border-hud-alert px-6 py-2 font-mono font-semibold flex items-center gap-2 hover:bg-hud-alert hover:text-black transition-all shadow-[inset_0_0_10px_rgba(255,42,42,0.2)] hover:shadow-[0_0_15px_#ff2a2a]">
-                        <i data-lucide="power" class="w-4 h-4"></i> SHUTDOWN SYSTEM
-                    </button>
                     <button onclick="resetFIM()" class="clip-btn bg-transparent text-hud-warn border border-hud-warn px-6 py-2 font-mono font-semibold flex items-center gap-2 hover:bg-hud-warn hover:text-black transition-all">
                         <i data-lucide="refresh-ccw" class="w-4 h-4"></i> PURGE FIM_CACHE
                     </button>
@@ -184,7 +177,7 @@
                 <div class="grid grid-cols-[350px_1fr] gap-8 mb-8">
                     <!-- Gauge Panel -->
                     <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
-                        <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
+                        <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['■'] before:text-[10px]">
                             SYS_INTEGRITY_INDEX
                         </h2>
                         <div class="flex justify-center items-center relative h-[200px]">
@@ -201,7 +194,7 @@
 
                     <!-- Metrics Panel -->
                     <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
-                        <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
+                        <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['■'] before:text-[10px]">
                             THREAT_METRICS
                         </h2>
                         <div class="grid grid-cols-3 gap-6 h-[200px]">
@@ -222,7 +215,7 @@
                 </div>
 
                 <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
-                    <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
+                    <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['■'] before:text-[10px]">
                         DETECTED_ANOMALIES
                     </h2>
                     <div id="findingsList"></div>
@@ -244,7 +237,7 @@
             
             <div class="grid grid-cols-2 gap-8 mb-8">
                 <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
-                    <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
+                    <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['■'] before:text-[10px]">
                         PROCESSOR_LOAD
                     </h2>
                     <div class="text-4xl font-mono font-bold mb-0 text-hud-primary" id="tele-cpu">0%</div>
@@ -254,7 +247,7 @@
                 </div>
                 
                 <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
-                    <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
+                    <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['■'] before:text-[10px]">
                         MEM_ALLOCATION
                     </h2>
                     <div class="text-4xl font-mono font-bold mb-0 text-[#a200ff]" id="tele-ram-gb">0 / 0 GB</div>
@@ -281,7 +274,7 @@
             </div>
             
             <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 mb-8 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
-                <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
+                <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['■'] before:text-[10px]">
                     POSTURE_DELTA
                 </h2>
                 <div class="w-full h-[200px]">
@@ -362,7 +355,7 @@
         // TELEMETRY API
         async function loadTelemetry() {
             try {
-                const res = await fetch('/api/telemetry');
+                const res = await fetch('http://127.0.0.1:5000/api/telemetry');
                 const data = await res.json();
                 if(data.success) {
                     document.getElementById('tele-cpu').innerText = data.cpu_percent + '% CPU';
@@ -387,7 +380,7 @@
         // HISTORY API
         async function loadHistory() {
             try {
-                const res = await fetch('/api/history');
+                const res = await fetch('http://127.0.0.1:5000/api/history');
                 const data = await res.json();
                 if(data.success && data.history.length > 0) {
                     const tbody = document.getElementById('historyBody');
@@ -457,7 +450,7 @@
         async function resetFIM() {
             if(!confirm("Are you sure you want to reset FIM baselines?")) return;
             try {
-                const res = await fetch('/api/fim/reset', { method: 'POST' });
+                const res = await fetch('http://127.0.0.1:5000/api/fim/reset', { method: 'POST' });
                 const data = await res.json();
                 alert(data.message || data.error);
             } catch(e) {
@@ -486,7 +479,7 @@
             // Start polling progress
             progressInterval = setInterval(async () => {
                 try {
-                    const res = await fetch('/api/scan/progress');
+                    const res = await fetch('http://127.0.0.1:5000/api/scan/progress');
                     const data = await res.json();
                     const statusText = document.getElementById('progress-status');
                     const progressBar = document.getElementById('progress-bar');
@@ -498,7 +491,7 @@
             }, 1000);
 
             try {
-                const response = await fetch('/api/scan', { method: 'POST' });
+                const response = await fetch('http://127.0.0.1:5000/api/scan', { method: 'POST' });
                 const data = await response.json();
                 
                 if(data.success) {
@@ -599,7 +592,7 @@
             if(!confirm(`WARNING: Deploy automated fix for vulnerability [${id}]?`)) return;
 
             try {
-                const response = await fetch('/api/remediate', {
+                const response = await fetch('http://127.0.0.1:5000/api/remediate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ finding_id: id })
@@ -609,9 +602,7 @@
                 
                 if(data.success) {
                     alert('SUCCESS: ' + data.message);
-                    removeFindingFromUI(id);
-                } else if(data.playbook) {
-                    showPlaybookModal(data.message, data.playbook);
+                    runScan(); 
                 } else {
                     alert('FAILURE: ' + data.message);
                 }
@@ -619,49 +610,6 @@
                 alert("Error connecting to backend API.");
             }
         }
-        
-        function removeFindingFromUI(id) {
-            const rows = document.querySelectorAll('#findingsList > div');
-            rows.forEach(row => {
-                if(row.innerHTML.includes(`[${id}]`)) {
-                    row.style.transition = 'all 0.5s ease-out';
-                    row.style.opacity = '0';
-                    row.style.transform = 'scale(0.9)';
-                    setTimeout(() => row.remove(), 500);
-                    
-                    let totalEl = document.getElementById('count-total');
-                    if(totalEl) totalEl.innerText = Math.max(0, parseInt(totalEl.innerText) - 1);
-                }
-            });
-        }
-        
-        function showPlaybookModal(message, playbookText) {
-            const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] backdrop-blur-sm';
-            modal.innerHTML = `
-                <div class="bg-[#00141e] border-2 border-hud-alert p-8 max-w-2xl w-full clip-hud relative shadow-[0_0_30px_rgba(255,42,42,0.3)]">
-                    <h2 class="text-3xl text-hud-alert font-bold mb-2 flex items-center gap-3"><i data-lucide="alert-triangle"></i> AUTO-PATCH FAILED</h2>
-                    <p class="text-hud-text font-mono mb-6">${message}</p>
-                    <div class="bg-black/50 border border-hud-secondary p-4 text-hud-warn font-mono whitespace-pre-wrap mb-6">${playbookText}</div>
-                    <div class="flex justify-end">
-                        <button onclick="this.closest('.fixed').remove()" class="bg-hud-alert/20 text-hud-alert border border-hud-alert px-6 py-2 font-mono font-bold hover:bg-hud-alert hover:text-black transition-all">ACKNOWLEDGE</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(modal);
-            lucide.createIcons();
-        }
-        
-        async function shutdownServer() {
-            if(!confirm("WARNING: Are you sure you want to shut down the background security agent?")) return;
-            try {
-                await fetch('/api/shutdown', { method: 'POST' });
-                document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#020608; color:#00e5ff; font-family:\'Share Tech Mono\', monospace; font-size:2rem; text-shadow:0 0 15px #00e5ff;">SYSTEM OFFLINE. YOU MAY CLOSE THIS WINDOW.</div>';
-            } catch (err) {
-                document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#020608; color:#00e5ff; font-family:\'Share Tech Mono\', monospace; font-size:2rem; text-shadow:0 0 15px #00e5ff;">SYSTEM OFFLINE. YOU MAY CLOSE THIS WINDOW.</div>';
-            }
-        }
     </script>
 </body>
 </html>
-

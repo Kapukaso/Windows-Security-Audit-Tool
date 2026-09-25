@@ -25,8 +25,8 @@ These phases represent the core data collection and assessment modules located i
 * [Phase 9: Password Policy](Phase_09_Password_Policy.md)
 * [Phase 10: Updates & Logs](Phase_10_Updates_and_Logs.md)
 
-### 3. Core Engines & Interfaces (Phases 11-16)
-These phases cover the analytical, persistence, UI, and testing mechanisms of the platform.
+### 3. Core Engines & Interfaces (Phases 11-21)
+These phases cover the analytical, persistence, UI, testing, and advanced security mechanisms of the platform.
 
 * [Phase 11: Risk Scoring Engine](Phase_11_Scoring_Engine.md) - The math behind the 135-point security score (`modules/score.py`).
 * [Phase 12: Reporting](Phase_12_Reporting.md) - JSON and HTML report generation.
@@ -34,6 +34,14 @@ These phases cover the analytical, persistence, UI, and testing mechanisms of th
 * [Phase 14: Web Dashboard](Phase_14_Web_Dashboard.md) - The Flask-based single page application (SPA).
 * [Phase 15: Remediation Engine](Phase_15_Remediation.md) - Automated hardening actions (`security/remediation.py`).
 * [Phase 16: Automated Testing](Phase_16_Testing.md) - Unit testing for the scoring model.
+* [Phase 17: Machine Learning](Phase_17_Machine_Learning.md) - ML-based anomaly detection (`modules/ml_anomaly.py`).
+* [Phase 18: File Integrity Monitoring](Phase_18_File_Integrity_Monitoring.md) - Detects unauthorized modifications (`modules/fim.py`).
+* [Phase 19: Deployment](Phase_19_Deployment.md) - Deployment and packaging guides.
+* [Phase 20: CVE Lookup](Phase_20_CVE_Lookup.md) - NIST NVD vulnerability lookup for software (`modules/cve_lookup.py`).
+* [Phase 21: Registry Security](Phase_21_Registry_Security.md) - Audits critical Windows Registry configurations (`modules/registry.py`).
+* [Phase 22: Frontend HUD Upgrade](Phase_22_Frontend_HUD_Upgrade.md) - Rebuilding the UI into a Sci-Fi HUD using Tailwind CSS.
+* [Phase 23: Advanced Remediation & CVE Upgrades](Phase_23_Advanced_Remediation_and_CVE_Upgrades.md) - Winget integration, Playbook Modals, UI Caching, and NIST API persistence.
+* [Phase 24: Concurrency & Utilities](Phase_24_Concurrency_and_Utilities.md) - Asynchronous multi-threading for data collection and standardized OS utilities.
 
 ## System Workflow Diagram
 

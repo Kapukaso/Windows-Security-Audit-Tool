@@ -3,12 +3,14 @@ app.py
 Web-based Dashboard and Hardening Platform using Flask.
 """
 from flask import Flask, render_template, request, jsonify
+from flask_cors import CORS
 from main import run_full_audit
 from database.database import init_db, save_scan_results, get_scan_history
 from security.remediation import apply_remediation
 import psutil
 
 app = Flask(__name__)
+CORS(app)
 
 # Store latest results in memory for the frontend
 LATEST_SCAN = {
@@ -127,6 +129,13 @@ def telemetry():
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route('/api/shutdown', methods=['POST'])
+def shutdown():
+    """Shuts down the backend server."""
+    import os, signal
+    os.kill(os.getpid(), signal.SIGINT)
+    return jsonify({"success": True, "message": "Server shutting down..."})
+
 if __name__ == '__main__':
     # Ensure database is ready
     init_db()
@@ -137,7 +146,6 @@ if __name__ == '__main__':
     def open_browser():
         webbrowser.open_new("http://127.0.0.1:5000")
         
-    # Open the browser 1.5 seconds after starting the server
     threading.Timer(1.5, open_browser).start()
     
     # Run the web server (debug must be False in production to prevent dual-reloads)

@@ -37,3 +37,4 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+node_frontend/node_modules/

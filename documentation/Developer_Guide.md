@@ -13,7 +13,7 @@ This guide explains how to extend the Defiant Windows Security Posture Platform.
 
 ## 2. How the Audit Loop Works
 When `run_full_audit()` is called in `main.py` (or via `/api/scan`):
-1. Each Python script in `modules/` is executed.
+1. Each Python script in `modules/` is executed concurrently utilizing a `ThreadPoolExecutor` (max 10 workers) for massive performance gains.
 2. The scripts typically have a `get_X()` function that collects raw data from Windows, and an `assess_X()` function that analyzes the data.
 3. The `assess_X()` function returns a list of "findings" (dictionaries).
 4. All findings are collected into a single list `all_findings`.
@@ -54,15 +54,23 @@ def assess_bitlocker(status):
 ```
 
 **Step 3: Register the Module in the Core Loop**
-Open `main.py`. Import your new module and add it to `run_full_audit()`:
+Open `main.py`. Import your new module and add its collection function to the concurrent `tasks` dictionary, and process its findings.
 ```python
 from modules.bitlocker import get_bitlocker_status, assess_bitlocker
 
-def run_full_audit():
+def run_full_audit(progress_tracker=None):
     # ... existing code ...
     
-    # Phase N: BitLocker
-    bitlocker_status = get_bitlocker_status()
+    tasks = {
+        "system_info": get_system_info,
+        "defender": get_defender_status,
+        # ... Add your task here ...
+        "bitlocker": get_bitlocker_status
+    }
+    
+    # ... further down, after ThreadPoolExecutor completes ...
+    
+    bitlocker_status = results.get("bitlocker")
     bitlocker_findings = assess_bitlocker(bitlocker_status)
     all_findings.extend(bitlocker_findings)
     

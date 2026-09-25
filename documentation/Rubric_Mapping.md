@@ -8,7 +8,7 @@ This document maps the official 11-point security outline directly to the progra
 
 ### 2. Secure Configuration
 * **Requirement:** Disable unnecessary services and configure firewall settings.
-* **Our Implementation:** **Phase 3 (`modules/firewall.py`)** ensures Domain, Private, and Public firewalls are strictly ON. **Phase 6 (`modules/services.py`)** audits all running background services for privilege escalation vulnerabilities.
+* **Our Implementation:** **Phase 3 (`modules/firewall.py`)** ensures Domain, Private, and Public firewalls are strictly ON. **Phase 6 (`modules/services.py`)** audits all running background services for privilege escalation vulnerabilities. **Phase 21 (`modules/registry.py`)** ensures core OS security mechanisms (UAC, NTLMv2, SMB Signing) are strictly enforced in the Windows Registry.
 
 ### 3. User Accounts and Privileges
 * **Requirement:** Implement Least Privilege (PoLP) and use strong passwords.
@@ -40,7 +40,7 @@ This document maps the official 11-point security outline directly to the progra
 
 ### 10. Regular Security Audits
 * **Requirement:** Conduct regular vulnerability assessments.
-* **Our Implementation:** The entire **Defiant Platform** is a 1-click, automated vulnerability assessment tool designed precisely for this purpose.
+* **Our Implementation:** The entire **Defiant Platform** is a 1-click, automated vulnerability assessment tool designed precisely for this purpose. Furthermore, **Phase 20 (`modules/cve_lookup.py`)** automatically cross-references installed third-party software with the NIST NVD to detect actively known Common Vulnerabilities and Exposures (CVEs).
 
 ### 11. Continual Improvement
 * **Requirement:** Review and update security measures regularly.
