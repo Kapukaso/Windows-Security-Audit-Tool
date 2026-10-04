@@ -57,6 +57,18 @@ def apply_remediation(finding_id):
         except Exception as e:
             return {"success": False, "message": f"Failed to disable SMB: {e}"}
             
+    
+    # -------------------------
+    # Automated Host Isolation
+    # -------------------------
+    elif finding_id == "NET-ISOLATE":
+        try:
+            cmd = 'New-NetFirewallRule -DisplayName "DEF-ISOLATION" -Direction Outbound -Action Block -Profile Any'
+            run_powershell_json(cmd)
+            return {"success": True, "message": "Host isolated! All outbound traffic blocked by Firewall."}
+        except Exception as e:
+            return {"success": False, "message": f"Failed to isolate host: {e}"}
+
     # -------------------------
     # Defender & Firewall
     # -------------------------

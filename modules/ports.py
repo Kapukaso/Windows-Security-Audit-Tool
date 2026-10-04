@@ -32,6 +32,41 @@ def assess_ports(listening_ports):
     # Track ports we've already flagged to avoid duplicates (e.g. if IPv4 and IPv6 both listen)
     flagged_ports = set()
     
+    # --- NEW: Outbound Active Connection Tracking ---
+    try:
+        connections = psutil.net_connections(kind='inet')
+        for conn in connections:
+            if conn.status == 'ESTABLISHED' and conn.raddr:
+                pid = conn.pid
+                exe_path = "Unknown"
+                process_name = "Unknown"
+                if pid:
+                    try:
+                        process = psutil.Process(pid)
+                        exe_path = process.exe().lower()
+                        process_name = process.name()
+                    except:
+                        pass
+                
+                suspicious_paths = ['\\temp\\', '\\appdata\\', '\\users\\public\\']
+                
+                if exe_path != "unknown" and any(sp in exe_path for sp in suspicious_paths):
+                    # Natively verify signature via Smart Verification Engine
+                    from security.verification import VERIFICATION_ENGINE
+                    
+                    if not VERIFICATION_ENGINE.verify_authenticode_signature(exe_path):
+                        findings.append({
+                            "id": "NET-004",
+                            "title": "Suspicious Unsigned Process Making External Network Call",
+                            "category": "Network",
+                            "severity": "HIGH",
+                            "description": f"Process {process_name} running from suspicious path ({exe_path}) is unsigned and connected to {conn.raddr.ip}.",
+                            "mitre": "T1071 (Application Layer Protocol)",
+                            "recommendation": "Investigate process for malware or unauthorized data exfiltration."
+                        })
+    except Exception:
+        pass
+        
     for port_info in listening_ports:
         port = port_info.get("Port")
         ip = port_info.get("LocalAddress")
@@ -40,7 +75,7 @@ def assess_ports(listening_ports):
         # Only flag if listening on all interfaces (0.0.0.0 or ::)
         # Listening on 127.0.0.1 is local-only and usually fine.
         is_exposed = ip in ("0.0.0.0", "::")
-        
+
         if is_exposed and port not in flagged_ports:
             if port == 3389:
                 findings.append({

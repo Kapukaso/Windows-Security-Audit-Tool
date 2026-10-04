@@ -69,6 +69,7 @@ def assess_password_policy(policy):
             "category": "Password Policy",
             "severity": "HIGH",
             "description": "There is no account lockout threshold configured.",
+            "mitre": "T1110 (Brute Force / Weak Lockout Policy)",
             "recommendation": "Set an account lockout threshold (e.g., 5 or 10 invalid attempts) to prevent password guessing attacks."
         })
         
@@ -82,6 +83,7 @@ def assess_password_policy(policy):
             "category": "Password Policy",
             "severity": "INFO",
             "description": "The maximum password age is extremely high or set to never expire.",
+            "mitre": "T1201 (Password Policy Discovery / Weak Policy)",
             "recommendation": "While NIST no longer mandates arbitrary rotation, ensure compensating controls (like MFA) exist."
         })
         

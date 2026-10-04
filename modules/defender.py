@@ -88,6 +88,7 @@ def assess_defender(status):
             "severity": "CRITICAL",
             "title": "Antivirus Disabled",
             "description": "Windows Defender Antivirus is not enabled on this system.",
+            "mitre": "T1562.001 (Impair Defenses: Disable or Modify Tools)",
             "recommendation": "Enable Windows Defender Antivirus immediately."
         })
 
@@ -98,6 +99,7 @@ def assess_defender(status):
             "severity": "HIGH",
             "title": "Real-Time Protection Disabled",
             "description": "Defender real-time protection is off. Malware can run undetected.",
+            "mitre": "T1562.001 (Impair Defenses: Disable or Modify Tools)",
             "recommendation": "Enable Real-Time Protection in Windows Security settings."
         })
 
@@ -108,6 +110,7 @@ def assess_defender(status):
             "severity": "MEDIUM",
             "title": "Behavior Monitoring Disabled",
             "description": "Behavior monitoring is off. Suspicious process activity may go undetected.",
+            "mitre": "T1562.001 (Impair Defenses: Disable or Modify Tools)",
             "recommendation": "Enable Behavior Monitoring in Defender settings."
         })
 
@@ -118,6 +121,7 @@ def assess_defender(status):
             "severity": "MEDIUM",
             "title": "Download Protection Disabled",
             "description": "IOAV (download/attachment scanning) is disabled.",
+            "mitre": "T1562.001 (Impair Defenses: Disable or Modify Tools)",
             "recommendation": "Enable cloud-delivered protection and download scanning."
         })
 
@@ -128,6 +132,7 @@ def assess_defender(status):
             "severity": "MEDIUM",
             "title": "Network Inspection System Disabled",
             "description": "Defender NIS is not monitoring network traffic for exploit patterns.",
+            "mitre": "T1562.001 (Impair Defenses: Disable or Modify Tools)",
             "recommendation": "Enable the Network Inspection System in Defender settings."
         })
 

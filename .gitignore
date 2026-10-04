@@ -38,3 +38,5 @@ Thumbs.db
 .vscode/
 *.swp
 node_frontend/node_modules/
+/documentation
+.defiant_config.json

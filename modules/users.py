@@ -61,6 +61,7 @@ def assess_users(users):
                 "severity": "HIGH",
                 "title": "Guest Account Enabled",
                 "description": "The built-in Guest account is enabled, allowing unauthenticated access.",
+                "mitre": "T1078.003 (Valid Accounts: Local Accounts)",
                 "recommendation": "Disable the Guest account via 'net user guest /active:no'."
             })
 
@@ -74,6 +75,7 @@ def assess_users(users):
             "severity": "MEDIUM",
             "title": f"Excessive Local Administrators ({enabled_admins})",
             "description": f"{enabled_admins} enabled local administrator accounts were found. Attackers who compromise any one of these accounts gain full system access.",
+            "mitre": "T1078.003 (Valid Accounts: Local Accounts)",
             "recommendation": "Reduce local administrator accounts to the minimum required. Prefer using standard accounts for daily use."
         })
 

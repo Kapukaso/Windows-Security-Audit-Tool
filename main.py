@@ -64,6 +64,7 @@ from modules.report import (
 from database.database import save_scan_results
 from modules.fim import audit_fim
 from modules.ml_anomaly import audit_anomalies
+from modules.drivers import get_drivers, assess_drivers
 from modules.registry import get_registry_security, assess_registry, display_registry
 
 
@@ -112,7 +113,8 @@ def run_full_audit(progress_tracker=None):
         "logs": get_event_log_stats,
         "fim": audit_fim,
         "ml": audit_anomalies,
-        "registry": get_registry_security
+        "registry": get_registry_security,
+        "drivers": get_drivers
     }
 
     results = {}
@@ -172,8 +174,13 @@ def run_full_audit(progress_tracker=None):
     fim_findings = results.get("fim")
     ml_findings = results.get("ml")
     
+    
     registry_data = results.get("registry")
     registry_findings = assess_registry(registry_data)
+
+    driver_data = results.get("drivers", [])
+    driver_findings = assess_drivers(driver_data)
+
 
     old_scores = {
         "Defender": defender_score(defender_status),
@@ -195,6 +202,7 @@ def run_full_audit(progress_tracker=None):
     all_findings.extend(fim_findings if isinstance(fim_findings, list) else [])
     all_findings.extend(ml_findings if isinstance(ml_findings, list) else [])
     all_findings.extend(registry_findings if isinstance(registry_findings, list) else [])
+    all_findings.extend(driver_findings if isinstance(driver_findings, list) else [])
 
     score_data = calculate_score(all_findings, old_scores)
     

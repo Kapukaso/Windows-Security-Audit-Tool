@@ -47,7 +47,9 @@ def query_nvd_api(software_name):
                 data = json.loads(response.read().decode('utf-8'))
                 return data.get("vulnerabilities", [])
     except Exception as e:
-        print(f"Error querying NVD for {software_name}: {e}")
+        # NVD API is frequently unstable or rate-limits aggressively.
+        # Silencing the print to prevent log pollution.
+        pass
     return []
 
 def audit_software_cves(software_list, progress_tracker=None):

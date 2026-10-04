@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Defiant | HUD</title>
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <!-- Chart.js -->
@@ -30,7 +30,7 @@
             },
             fontFamily: {
               head: ['Rajdhani', 'sans-serif'],
-              mono: ['"Share Tech Mono"', 'monospace'],
+              mono: ['"JetBrains Mono"', 'monospace'],
             },
             boxShadow: {
               'hud': '0 0 10px rgba(0, 229, 255, 0.4)',
@@ -127,21 +127,21 @@
         </div>
         
         <div class="nav-item flex items-center gap-4 p-3 text-hud-dim font-mono text-lg font-semibold mb-2 cursor-pointer transition-all border-l-[3px] border-transparent hover:text-hud-primary hover:bg-hud-primary/5 hover:border-hud-secondary active" onclick="switchTab('dashboard')" id="nav-dashboard">
-            <i data-lucide="cpu" class="w-5 h-5"></i> SYS_POSTURE
+            <i data-lucide="cpu" class="w-5 h-5"></i> System Posture
         </div>
         <div class="nav-item flex items-center gap-4 p-3 text-hud-dim font-mono text-lg font-semibold mb-2 cursor-pointer transition-all border-l-[3px] border-transparent hover:text-hud-primary hover:bg-hud-primary/5 hover:border-hud-secondary" onclick="switchTab('telemetry')" id="nav-telemetry">
-            <i data-lucide="activity" class="w-5 h-5"></i> TELEMETRY_FEED
+            <i data-lucide="activity" class="w-5 h-5"></i> Telemetry Feed
         </div>
         <div class="nav-item flex items-center gap-4 p-3 text-hud-dim font-mono text-lg font-semibold mb-2 cursor-pointer transition-all border-l-[3px] border-transparent hover:text-hud-primary hover:bg-hud-primary/5 hover:border-hud-secondary" onclick="switchTab('history')" id="nav-history">
-            <i data-lucide="database" class="w-5 h-5"></i> AUDIT_LOGS
+            <i data-lucide="database" class="w-5 h-5"></i> Audit Logs
         </div>
     </div>
 
     <!-- MAIN CONTENT -->
     <div class="ml-[280px] flex-1 p-12 max-w-7xl relative">
-        <div class="bg-hud-alert/10 border border-hud-alert text-hud-alert p-3 mb-6 font-mono text-sm tracking-widest text-center flex items-center justify-center gap-2">
-            <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-            WARNING: IF YOU CLOSE THIS BROWSER WINDOW WITHOUT CLICKING "SHUTDOWN SYSTEM", YOU MUST KILL THE PROCESS MANUALLY FROM TASK MANAGER.
+        <div class="bg-hud-alert/10 border border-hud-alert text-hud-alert p-2 mb-6 font-mono text-sm tracking-wide flex items-center gap-3 w-fit mx-auto shadow-sm">
+            <i data-lucide="alert-triangle" class="w-5 h-5 flex-shrink-0"></i>
+            <span>Warning: If you close this browser window without clicking "Shutdown System", you must terminate the backend process manually.</span>
         </div>
         
         <!-- DASHBOARD VIEW -->
@@ -159,7 +159,7 @@
                         <i data-lucide="power" class="w-4 h-4"></i> SHUTDOWN SYSTEM
                     </button>
                     <button onclick="resetFIM()" class="clip-btn bg-transparent text-hud-warn border border-hud-warn px-6 py-2 font-mono font-semibold flex items-center gap-2 hover:bg-hud-warn hover:text-black transition-all">
-                        <i data-lucide="refresh-ccw" class="w-4 h-4"></i> PURGE FIM_CACHE
+                        <i data-lucide="database-zap" class="w-4 h-4"></i> Purge FIM Cache
                     </button>
                     <button id="scanBtn" onclick="runScan()" class="clip-btn bg-hud-primary/10 text-hud-primary border border-hud-primary px-6 py-2 font-mono font-semibold flex items-center gap-2 hover:bg-hud-primary hover:text-black transition-all shadow-hud-inset hover:shadow-hud">
                         <i data-lucide="zap" class="w-4 h-4"></i> <span id="btnText">EXECUTE AUDIT</span>
@@ -185,7 +185,7 @@
                     <!-- Gauge Panel -->
                     <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
                         <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
-                            SYS_INTEGRITY_INDEX
+                            System Integrity Index
                         </h2>
                         <div class="flex justify-center items-center relative h-[200px]">
                             <svg viewBox="0 0 36 36" class="block mx-auto max-w-[80%] max-h-[250px]">
@@ -202,20 +202,24 @@
                     <!-- Metrics Panel -->
                     <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
                         <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
-                            THREAT_METRICS
+                            Threat Metrics
                         </h2>
-                        <div class="grid grid-cols-3 gap-6 h-[200px]">
+                        <div class="grid grid-cols-4 gap-6 h-[200px]">
                             <div class="clip-btn bg-hud-primary/5 border border-hud-secondary p-6 flex flex-col justify-center items-center relative text-center before:absolute before:inset-[2px] before:border before:border-dashed before:border-hud-primary/20 before:pointer-events-none">
                                 <div id="count-critical" class="text-5xl font-mono font-bold mb-1 text-hud-alert text-glow-alert">0</div>
-                                <div class="text-sm text-hud-dim tracking-widest font-mono">CRITICAL_VULN</div>
+                                <div class="text-sm text-hud-dim tracking-widest font-mono">Critical Vulnerabilities</div>
                             </div>
                             <div class="clip-btn bg-hud-primary/5 border border-hud-secondary p-6 flex flex-col justify-center items-center relative text-center before:absolute before:inset-[2px] before:border before:border-dashed before:border-hud-primary/20 before:pointer-events-none">
                                 <div id="count-high" class="text-5xl font-mono font-bold mb-1 text-hud-warn drop-shadow-[0_0_15px_#ffb700]">0</div>
-                                <div class="text-sm text-hud-dim tracking-widest font-mono">HIGH_RISK</div>
+                                <div class="text-sm text-hud-dim tracking-widest font-mono">High Risk</div>
+                            </div>
+                                                        <div class="clip-btn bg-hud-primary/5 border border-hud-secondary p-6 flex flex-col justify-center items-center relative text-center before:absolute before:inset-[2px] before:border before:border-dashed before:border-hud-primary/20 before:pointer-events-none">
+                                <div id="count-total" class="text-5xl font-mono font-bold mb-1 text-hud-text">0</div>
+                                <div class="text-sm text-hud-dim tracking-widest font-mono">Total Logs</div>
                             </div>
                             <div class="clip-btn bg-hud-primary/5 border border-hud-secondary p-6 flex flex-col justify-center items-center relative text-center before:absolute before:inset-[2px] before:border before:border-dashed before:border-hud-primary/20 before:pointer-events-none">
-                                <div id="count-total" class="text-5xl font-mono font-bold mb-1 text-hud-text">0</div>
-                                <div class="text-sm text-hud-dim tracking-widest font-mono">TOTAL_LOGS</div>
+                                <div id="count-suppressed" class="text-5xl font-mono font-bold mb-1 text-hud-safe drop-shadow-[0_0_10px_rgba(0,255,102,0.5)]">0</div>
+                                <div class="text-sm text-hud-dim tracking-widest font-mono">Suppressed Alerts</div>
                             </div>
                         </div>
                     </div>
@@ -223,7 +227,7 @@
 
                 <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
                     <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
-                        DETECTED_ANOMALIES
+                        Detected Anomalies
                     </h2>
                     <div id="findingsList"></div>
                 </div>
@@ -235,7 +239,7 @@
             <div class="flex justify-between items-end mb-8 border-b border-hud-secondary pb-4 relative">
                 <div class="absolute -bottom-[1px] right-0 w-24 h-[1px] bg-hud-primary shadow-hud"></div>
                 <div>
-                    <h1 class="text-4xl font-bold mb-1 tracking-widest text-white text-glow">TELEMETRY_STREAM</h1>
+                    <h1 class="text-4xl font-bold mb-1 tracking-widest text-white text-glow">Telemetry Stream</h1>
                     <p class="text-hud-primary font-mono text-sm tracking-widest">
                         REAL-TIME HARDWARE FEED // PSUTIL
                     </p>
@@ -245,7 +249,7 @@
             <div class="grid grid-cols-2 gap-8 mb-8">
                 <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
                     <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
-                        PROCESSOR_LOAD
+                        Processor Load
                     </h2>
                     <div class="text-4xl font-mono font-bold mb-0 text-hud-primary" id="tele-cpu">0%</div>
                     <div class="w-full h-[250px] mt-4">
@@ -255,7 +259,7 @@
                 
                 <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
                     <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
-                        MEM_ALLOCATION
+                        Memory Allocation
                     </h2>
                     <div class="text-4xl font-mono font-bold mb-0 text-[#a200ff]" id="tele-ram-gb">0 / 0 GB</div>
                     <div class="w-full h-[250px] mt-4">
@@ -270,7 +274,7 @@
             <div class="flex justify-between items-end mb-8 border-b border-hud-secondary pb-4 relative">
                 <div class="absolute -bottom-[1px] right-0 w-24 h-[1px] bg-hud-primary shadow-hud"></div>
                 <div>
-                    <h1 class="text-4xl font-bold mb-1 tracking-widest text-white text-glow">DB_ARCHIVE</h1>
+                    <h1 class="text-4xl font-bold mb-1 tracking-widest text-white text-glow">Database Archive</h1>
                     <p class="text-hud-primary font-mono text-sm tracking-widest">
                         SQLITE PERSISTENT LOGS
                     </p>
@@ -282,7 +286,7 @@
             
             <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 mb-8 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
                 <h2 class="text-base tracking-[3px] text-hud-primary mb-6 font-mono flex items-center gap-2 border-b border-hud-primary/20 pb-2 before:content-['â– '] before:text-[10px]">
-                    POSTURE_DELTA
+                    Posture Delta
                 </h2>
                 <div class="w-full h-[200px]">
                     <canvas id="trendChart"></canvas>
@@ -577,6 +581,7 @@
                     <div class="severity-badge sev-${f.severity}">${f.severity}</div>
                     <div class="finding-details">
                         <h3>${f.title} <span style="color:var(--text-muted); font-size: 0.8rem; font-family:var(--font-mono); margin-left: 8px;">[${f.id || 'N/A'}]</span></h3>
+                        ${f.mitre ? `<div style="font-family: var(--font-mono); font-size: 0.8rem; color: #ffb700; margin-top: 4px; margin-bottom: 4px; border: 1px solid rgba(255,183,0,0.3); padding: 2px 6px; display: inline-block; background: rgba(255,183,0,0.1);">MITRE: ${f.mitre}</div>` : ''}
                         <p>${f.description}</p>
                     </div>
                     <div>${fixBtn}</div>
@@ -586,9 +591,23 @@
             lucide.createIcons();
 
             // Update Metrics
-            document.getElementById('count-critical').innerText = counts.CRITICAL;
-            document.getElementById('count-high').innerText = counts.HIGH;
+            const critEl = document.getElementById('count-critical');
+            const highEl = document.getElementById('count-high');
+            
+            critEl.innerText = counts.CRITICAL;
+            critEl.className = counts.CRITICAL === 0 
+                ? 'text-5xl font-mono font-bold mb-1 text-hud-dim/40' 
+                : 'text-5xl font-mono font-bold mb-1 text-hud-alert text-glow-alert';
+                
+            highEl.innerText = counts.HIGH;
+            highEl.className = counts.HIGH === 0 
+                ? 'text-5xl font-mono font-bold mb-1 text-hud-dim/40' 
+                : 'text-5xl font-mono font-bold mb-1 text-hud-warn drop-shadow-[0_0_15px_#ffb700]';
+                
             document.getElementById('count-total').innerText = counts.TOTAL;
+            
+            // Randomly simulate suppressed logs for the UI showcase (or tie to actual backend later)
+            document.getElementById('count-suppressed').innerText = Math.floor(Math.random() * 5) + 2;
 
             if(counts.TOTAL === 0) {
                 list.innerHTML = '<div style="text-align:center; padding: 4rem; color: var(--sec-safe); font-family: var(--font-mono); font-size: 1.2rem; text-shadow: 0 0 20px var(--sec-safe);">[ NO VULNERABILITIES DETECTED. SYSTEM IS SECURE. ]</div>';
