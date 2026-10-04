@@ -28,7 +28,7 @@ These phases represent the core data collection and assessment modules located i
 ### 3. Core Engines & Interfaces (Phases 11-21)
 These phases cover the analytical, persistence, UI, testing, and advanced security mechanisms of the platform.
 
-* [Phase 11: Risk Scoring Engine](Phase_11_Scoring_Engine.md) - The math behind the 135-point security score (`modules/score.py`).
+* [Phase 11: Risk Scoring Engine](Phase_11_Scoring_Engine.md) - The math behind the 190-point security score (`modules/score.py`).
 * [Phase 12: Reporting](Phase_12_Reporting.md) - JSON and HTML report generation.
 * [Phase 13: Database Persistence](Phase_13_Database.md) - SQLite historical tracking.
 * [Phase 14: Web Dashboard](Phase_14_Web_Dashboard.md) - The Flask-based single page application (SPA).

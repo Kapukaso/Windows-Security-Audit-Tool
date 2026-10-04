@@ -56,6 +56,9 @@ def scan():
         # Save to SQLite
         scan_id = save_scan_results(sys_info, score, findings)
         
+        from modules.compliance import generate_compliance_report
+        compliance_report = generate_compliance_report(findings)
+        
         SCAN_PROGRESS["status"] = "idle"
         SCAN_PROGRESS["percentage"] = 100
         SCAN_PROGRESS["message"] = "Complete!"
@@ -65,7 +68,8 @@ def scan():
             "scan_id": scan_id, 
             "score": score, 
             "findings": findings,
-            "system_info": sys_info
+            "system_info": sys_info,
+            "compliance": compliance_report
         })
         
     except Exception as e:

@@ -1,0 +1,623 @@
+{
+    "timestamp": "2026-10-04T18:15:56.232008",
+    "score_summary": {
+        "category_scores": {
+            "Defender": 20,
+            "Firewall": 20,
+            "Users": 15,
+            "Password Policy": 10,
+            "Updates": 15,
+            "Network": 8,
+            "Services": 5,
+            "Startup": 10,
+            "Software": 0,
+            "Event Logs": 10,
+            "Registry": 8,
+            "FIM": 20,
+            "Anomalies": 20
+        },
+        "total_earned": 161,
+        "total_possible": 190
+    },
+    "findings": [
+        {
+            "id": "SOFT-001",
+            "title": "Software with Unknown Publisher",
+            "category": "Software",
+            "severity": "LOW",
+            "description": "The software 'Rustup: the Rust toolchain installer' does not have a verified publisher.",
+            "recommendation": "Verify if this software is legitimate or remove it if unnecessary."
+        },
+        {
+            "id": "CVE|Cisco Packet Tracer 9.0.1 64Bit",
+            "category": "Software",
+            "severity": "HIGH",
+            "title": "Known Vulnerability in Cisco Packet Tracer 9.0.1 64Bit",
+            "description": "The NIST NVD reports vulnerabilities (e.g. CVE-1999-1216) for this software. Details: Cisco routers 9.17 and earlier allow remote attackers to bypass security restrictions via certain IP source routed packets that should normally be den...",
+            "recommendation": "Update Cisco Packet Tracer 9.0.1 64Bit to the latest version immediately or uninstall it."
+        },
+        {
+            "id": "CVE|Git",
+            "category": "Software",
+            "severity": "HIGH",
+            "title": "Known Vulnerability in Git",
+            "description": "The NIST NVD reports vulnerabilities (e.g. CVE-2006-0477) for this software. Details: Buffer overflow in git-checkout-index in GIT before 1.1.5 allows remote attackers to execute arbitrary code via an index file with a long symbolic lin...",
+            "recommendation": "Update Git to the latest version immediately or uninstall it."
+        },
+        {
+            "id": "CVE|PostgreSQL 18",
+            "category": "Software",
+            "severity": "HIGH",
+            "title": "Known Vulnerability in PostgreSQL 18",
+            "description": "The NIST NVD reports vulnerabilities (e.g. CVE-2017-8806) for this software. Details: The Debian pg_ctlcluster, pg_createcluster, and pg_upgradecluster scripts, as distributed in the Debian postgresql-common package before 181+deb9u1 fo...",
+            "recommendation": "Update PostgreSQL 18 to the latest version immediately or uninstall it."
+        },
+        {
+            "id": "SVC-001",
+            "title": "Unquoted Service Path",
+            "category": "Services",
+            "severity": "HIGH",
+            "description": "Service 'CodexSandboxService.OpenAI.Codex' (ChatGPT) has an unquoted path with spaces: c:\\program files\\windowsapps\\openai.codex_26.924.2738.0_x64__2p2nqsd0c76g0\\app\\resources\\codex-windows-sandbox-service.exe",
+            "recommendation": "Enclose the service executable path in quotation marks in the Registry (HKLM\\System\\CurrentControlSet\\Services)."
+        },
+        {
+            "id": "NET-002",
+            "title": "Windows File Sharing (SMB) Exposed",
+            "category": "Network",
+            "severity": "MEDIUM",
+            "description": "SMB/NetBIOS (Port 445) is listening on all network interfaces.",
+            "recommendation": "Ensure SMBv1 is disabled and avoid exposing SMB directly to untrusted networks."
+        },
+        {
+            "id": "POL-001",
+            "title": "Weak Minimum Password Length",
+            "category": "Password Policy",
+            "severity": "HIGH",
+            "description": "The minimum password length is set to 0 characters.",
+            "recommendation": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+        },
+        {
+            "id": "FIM-INFO",
+            "category": "FIM",
+            "severity": "INFO",
+            "title": "Baseline Established",
+            "description": "Initial SHA-256 baseline recorded for C:\\Windows\\System32\\drivers\\etc\\hosts."
+        },
+        {
+            "id": "FIM-INFO",
+            "category": "FIM",
+            "severity": "INFO",
+            "title": "Baseline Established",
+            "description": "Initial SHA-256 baseline recorded for C:\\Windows\\System32\\drivers\\etc\\lmhosts.sam."
+        },
+        {
+            "id": "FIM-INFO",
+            "category": "FIM",
+            "severity": "INFO",
+            "title": "Baseline Established",
+            "description": "Initial SHA-256 baseline recorded for C:\\Windows\\System32\\sethc.exe."
+        },
+        {
+            "id": "FIM-INFO",
+            "category": "FIM",
+            "severity": "INFO",
+            "title": "Baseline Established",
+            "description": "Initial SHA-256 baseline recorded for C:\\Windows\\System32\\utilman.exe."
+        },
+        {
+            "id": "FIM-INFO",
+            "category": "FIM",
+            "severity": "INFO",
+            "title": "Baseline Established",
+            "description": "Initial SHA-256 baseline recorded for C:\\Windows\\System32\\osk.exe."
+        },
+        {
+            "id": "FIM-INFO",
+            "category": "FIM",
+            "severity": "INFO",
+            "title": "Baseline Established",
+            "description": "Initial SHA-256 baseline recorded for C:\\Windows\\System32\\magnify.exe."
+        },
+        {
+            "id": "FIM-INFO",
+            "category": "FIM",
+            "severity": "INFO",
+            "title": "Baseline Established",
+            "description": "Initial SHA-256 baseline recorded for C:\\Windows\\System32\\cmd.exe."
+        },
+        {
+            "id": "FIM-INFO",
+            "category": "FIM",
+            "severity": "INFO",
+            "title": "Baseline Established",
+            "description": "Initial SHA-256 baseline recorded for C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe."
+        },
+        {
+            "id": "ML-ERR",
+            "category": "Anomalies",
+            "severity": "INFO",
+            "title": "ML Engine Unavailable",
+            "description": "scikit-learn is not installed. Anomaly detection skipped."
+        },
+        {
+            "id": "REG-002",
+            "category": "Registry",
+            "severity": "HIGH",
+            "title": "Weak LAN Manager Auth Level",
+            "description": "LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.",
+            "recommendation": "Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM."
+        },
+        {
+            "id": "REG-004",
+            "category": "Registry",
+            "severity": "MEDIUM",
+            "title": "SMB Signing Not Enforced",
+            "description": "SMB communication may be vulnerable to relay attacks.",
+            "recommendation": "Set RequireSecuritySignature to 1."
+        }
+    ],
+    "compliance": {
+        "CIS": {
+            "passed": 8,
+            "failed": 2,
+            "rules": [
+                {
+                    "requirement": "CIS 2.1 (UAC Settings)",
+                    "description": "Ensure User Account Control (UAC) is enabled.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "CIS 2.2 (NTLMv2)",
+                    "description": "Ensure NTLMv2 is strictly enforced.",
+                    "status": "FAIL",
+                    "evidence": "LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.",
+                    "fix_guidance": "Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM."
+                },
+                {
+                    "requirement": "CIS 3.14 (File Integrity Monitoring)",
+                    "description": "Monitor critical system files for unauthorized modifications.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "CIS 7.1 (Vulnerability Management)",
+                    "description": "Ensure the system has applied recent security patches.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "CIS 8.2 (Collect Audit Logs)",
+                    "description": "Ensure Security Event Logs are being generated and collected.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "CIS 10.1 (Anti-Malware)",
+                    "description": "Ensure Windows Defender Real-Time Protection is active.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "CIS 9.1 (Host-Based Firewalls)",
+                    "description": "Ensure Windows Firewall is enabled for all profiles.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "CIS 4.1 (Password Policy)",
+                    "description": "Ensure minimum password length is at least 14 characters.",
+                    "status": "FAIL",
+                    "evidence": "The minimum password length is set to 0 characters.",
+                    "fix_guidance": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+                },
+                {
+                    "requirement": "CIS 9.2 (Restrict Insecure Protocols)",
+                    "description": "Ensure insecure legacy protocols (like Telnet/FTP) are not listening.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "CIS 5.1 (Establish Secure Configurations)",
+                    "description": "Ensure unauthorized accounts are not in the Local Administrators group.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                }
+            ],
+            "compliance_score": 80.0
+        },
+        "NIST": {
+            "passed": 8,
+            "failed": 2,
+            "rules": [
+                {
+                    "requirement": "NIST AC-6 (Least Privilege)",
+                    "description": "Ensure User Account Control (UAC) is enabled.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "NIST IA-5 (Authenticator Management)",
+                    "description": "Ensure NTLMv2 is strictly enforced.",
+                    "status": "FAIL",
+                    "evidence": "LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.",
+                    "fix_guidance": "Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM."
+                },
+                {
+                    "requirement": "NIST SI-7 (Information Integrity)",
+                    "description": "Monitor critical system files for unauthorized modifications.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "NIST SI-2 (Flaw Remediation)",
+                    "description": "Ensure the system has applied recent security patches.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "NIST AU-2 (Event Logging)",
+                    "description": "Ensure Security Event Logs are being generated and collected.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "NIST SI-3 (Malicious Code Protection)",
+                    "description": "Ensure Windows Defender Real-Time Protection is active.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "NIST SC-7 (Boundary Protection)",
+                    "description": "Ensure Windows Firewall is enabled for all profiles.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "NIST IA-5 (Authenticator Management)",
+                    "description": "Ensure minimum password length is at least 14 characters.",
+                    "status": "FAIL",
+                    "evidence": "The minimum password length is set to 0 characters.",
+                    "fix_guidance": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+                },
+                {
+                    "requirement": "NIST SC-8 (Transmission Confidentiality)",
+                    "description": "Ensure insecure legacy protocols (like Telnet/FTP) are not listening.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "NIST AC-2 (Account Management)",
+                    "description": "Ensure unauthorized accounts are not in the Local Administrators group.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                }
+            ],
+            "compliance_score": 80.0
+        },
+        "STIG": {
+            "passed": 8,
+            "failed": 2,
+            "rules": [
+                {
+                    "requirement": "V-220739 (UAC Enabled)",
+                    "description": "Ensure User Account Control (UAC) is enabled.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "V-220743 (LM Compatibility Level)",
+                    "description": "Ensure NTLMv2 is strictly enforced.",
+                    "status": "FAIL",
+                    "evidence": "LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.",
+                    "fix_guidance": "Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM."
+                },
+                {
+                    "requirement": "V-220745 (File Integrity)",
+                    "description": "Monitor critical system files for unauthorized modifications.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "V-220746 (System Updates)",
+                    "description": "Ensure the system has applied recent security patches.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "V-220748 (Audit Event Logging)",
+                    "description": "Ensure Security Event Logs are being generated and collected.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "V-220749 (Endpoint Security)",
+                    "description": "Ensure Windows Defender Real-Time Protection is active.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "V-220750 (Windows Firewall)",
+                    "description": "Ensure Windows Firewall is enabled for all profiles.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "V-220751 (Password Length)",
+                    "description": "Ensure minimum password length is at least 14 characters.",
+                    "status": "FAIL",
+                    "evidence": "The minimum password length is set to 0 characters.",
+                    "fix_guidance": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+                },
+                {
+                    "requirement": "V-220752 (Legacy Protocols)",
+                    "description": "Ensure insecure legacy protocols (like Telnet/FTP) are not listening.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "V-220753 (Administrator Accounts)",
+                    "description": "Ensure unauthorized accounts are not in the Local Administrators group.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                }
+            ],
+            "compliance_score": 80.0
+        },
+        "ISO 27001": {
+            "passed": 8,
+            "failed": 2,
+            "rules": [
+                {
+                    "requirement": "A.9.2.3 (Privileged Rights)",
+                    "description": "Ensure User Account Control (UAC) is enabled.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "A.9.4.3 (Password Management)",
+                    "description": "Ensure NTLMv2 is strictly enforced.",
+                    "status": "FAIL",
+                    "evidence": "LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.",
+                    "fix_guidance": "Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM."
+                },
+                {
+                    "requirement": "A.12.2.1 (Malware Controls)",
+                    "description": "Monitor critical system files for unauthorized modifications.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "A.12.6.1 (Technical Vulnerabilities)",
+                    "description": "Ensure the system has applied recent security patches.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "A.12.4.1 (Event Logging)",
+                    "description": "Ensure Security Event Logs are being generated and collected.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "A.12.2.1 (Malware Controls)",
+                    "description": "Ensure Windows Defender Real-Time Protection is active.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "A.13.1.1 (Network Controls)",
+                    "description": "Ensure Windows Firewall is enabled for all profiles.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "A.9.4.3 (Password Management)",
+                    "description": "Ensure minimum password length is at least 14 characters.",
+                    "status": "FAIL",
+                    "evidence": "The minimum password length is set to 0 characters.",
+                    "fix_guidance": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+                },
+                {
+                    "requirement": "A.13.2.1 (Information Transfer)",
+                    "description": "Ensure insecure legacy protocols (like Telnet/FTP) are not listening.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "A.9.2.1 (User Registration)",
+                    "description": "Ensure unauthorized accounts are not in the Local Administrators group.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                }
+            ],
+            "compliance_score": 80.0
+        },
+        "HIPAA": {
+            "passed": 8,
+            "failed": 2,
+            "rules": [
+                {
+                    "requirement": "164.312(a)(1) (Access Control)",
+                    "description": "Ensure User Account Control (UAC) is enabled.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "164.312(d) (Authentication)",
+                    "description": "Ensure NTLMv2 is strictly enforced.",
+                    "status": "FAIL",
+                    "evidence": "LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.",
+                    "fix_guidance": "Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM."
+                },
+                {
+                    "requirement": "164.312(c)(1) (Integrity)",
+                    "description": "Monitor critical system files for unauthorized modifications.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "164.308(a)(5)(ii)(B) (Patch Management)",
+                    "description": "Ensure the system has applied recent security patches.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "164.312(b) (Audit Controls)",
+                    "description": "Ensure Security Event Logs are being generated and collected.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "164.308(a)(5)(ii)(B) (Malware Protection)",
+                    "description": "Ensure Windows Defender Real-Time Protection is active.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "164.312(e)(1) (Transmission Security)",
+                    "description": "Ensure Windows Firewall is enabled for all profiles.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "164.308(a)(5)(ii)(D) (Password Management)",
+                    "description": "Ensure minimum password length is at least 14 characters.",
+                    "status": "FAIL",
+                    "evidence": "The minimum password length is set to 0 characters.",
+                    "fix_guidance": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+                },
+                {
+                    "requirement": "164.312(e)(1) (Transmission Security)",
+                    "description": "Ensure insecure legacy protocols (like Telnet/FTP) are not listening.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "164.308(a)(4)(ii)(B) (Access Authorization)",
+                    "description": "Ensure unauthorized accounts are not in the Local Administrators group.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                }
+            ],
+            "compliance_score": 80.0
+        },
+        "PCI": {
+            "passed": 8,
+            "failed": 2,
+            "rules": [
+                {
+                    "requirement": "Req 7.1.2 (Restrict Privileged IDs)",
+                    "description": "Ensure User Account Control (UAC) is enabled.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "Req 8.2.1 (Strong Cryptography)",
+                    "description": "Ensure NTLMv2 is strictly enforced.",
+                    "status": "FAIL",
+                    "evidence": "LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.",
+                    "fix_guidance": "Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM."
+                },
+                {
+                    "requirement": "Req 11.5 (Deploy FIM Tools)",
+                    "description": "Monitor critical system files for unauthorized modifications.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "Req 6.2 (Protect from Known Vulnerabilities)",
+                    "description": "Ensure the system has applied recent security patches.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "Req 10.1 (Implement Audit Trails)",
+                    "description": "Ensure Security Event Logs are being generated and collected.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "Req 5.1 (Deploy Anti-Virus Software)",
+                    "description": "Ensure Windows Defender Real-Time Protection is active.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "Req 1.1 (Establish Firewall Configuration)",
+                    "description": "Ensure Windows Firewall is enabled for all profiles.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "Req 8.2.3 (Minimum Password Length)",
+                    "description": "Ensure minimum password length is at least 14 characters.",
+                    "status": "FAIL",
+                    "evidence": "The minimum password length is set to 0 characters.",
+                    "fix_guidance": "Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks."
+                },
+                {
+                    "requirement": "Req 2.2.3 (Implement Secure Protocols)",
+                    "description": "Ensure insecure legacy protocols (like Telnet/FTP) are not listening.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                },
+                {
+                    "requirement": "Req 7.1.1 (Define Access Needs)",
+                    "description": "Ensure unauthorized accounts are not in the Local Administrators group.",
+                    "status": "PASS",
+                    "evidence": "System meets secure baseline configuration.",
+                    "fix_guidance": "Maintain current configuration."
+                }
+            ],
+            "compliance_score": 80.0
+        }
+    }
+}

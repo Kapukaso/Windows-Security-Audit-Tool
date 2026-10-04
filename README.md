@@ -14,12 +14,20 @@
 This project was designed to automate the traditionally manual process of checking a Windows machine for security misconfigurations. Rather than dumping raw data into a CLI, it aggregates findings through a central Risk Scoring Engine and presents them on a decoupled, modern web dashboard.
 
 ### Core Capabilities
+<<<<<<< Updated upstream
 1. **Automated Auditing (15+ Phases):** Analyzes Windows Defender, Firewalls, User Accounts, Password Policies, Open Ports, Active Services, Startup Apps, Installed Software, Windows Updates, Event Logs, Windows Registry, Software CVEs, File Integrity (FIM), ML Anomaly Detection, and Vulnerable Kernel Drivers (BYOVD).
 2. **Smart Verification Engine:** Eliminates false positives natively. Cryptographically validates process Authenticode signatures directly via the Windows kernel (`wintrust.dll`) backed by an ultra-fast, in-memory LRU SQLite cache.
 3. **MITRE ATT&CK Mapping:** All detected anomalies and telemetry alerts are natively mapped to their corresponding MITRE ATT&CK vectors for threat intelligence tracking.
 4. **Automated Remediation:** Features a "Do No Harm" hardening engine. It allows 1-click automated fixes for safe configurations (like SMB Isolation, NTLM/LAN Manager settings, and Password Lengths).
 5. **Centralized Fleet Management:** Built on a Dual-Engine Database architecture. Supports local standalone `SQLite` execution, or dynamic `.env` routing to centralized `PostgreSQL` clusters for managing hundreds of distributed endpoints.
 6. **Live Telemetry:** Streams real-time CPU and RAM allocation to the dashboard.
+=======
+1. **Automated Auditing (14+ Phases):** Analyzes Windows Defender, Firewalls, User Accounts, Password Policies, Open Ports, Active Services, Startup Apps, Installed Software, Windows Updates, Event Logs, Windows Registry, Software CVEs, File Integrity (FIM), and ML Anomaly Detection.
+2. **Mathematical Risk Scoring:** Evaluates findings based on Severity (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`) and deducts points from 13 distinct, weighted categories to generate an overall health percentage out of 190 total points.
+3. **Automated Remediation:** Features a "Do No Harm" hardening engine. It allows 1-click automated fixes for safe configurations (like Password Lengths) while safely flagging complex software uninstalls for manual review.
+4. **Live Telemetry:** Streams real-time CPU and RAM allocation to the dashboard.
+5. **Persistent Scan History:** Saves every audit mathematically to a local SQLite database for historical compliance tracking.
+>>>>>>> Stashed changes
 
 ---
 

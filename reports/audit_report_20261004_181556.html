@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows Security Audit Report</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 1000px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        h2 { color: #2980b9; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        .score-card { text-align: center; margin: 20px 0; padding: 20px; background: #ecf0f1; border-radius: 8px; }
+        .score { font-size: 48px; font-weight: bold; color: #27ae60; }
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #34495e; color: white; }
+        tr:hover { background-color: #f5f5f5; }
+        .finding { background: #fff3f3; border-left: 5px solid #e74c3c; padding: 15px; margin-bottom: 15px; border-radius: 4px; }
+        .finding-title { font-weight: bold; font-size: 16px; color: #c0392b; }
+        .finding-meta { font-size: 12px; color: #7f8c8d; margin-bottom: 8px; }
+        .severity-CRITICAL { color: #c0392b; font-weight: bold; }
+        .severity-HIGH { color: #e67e22; font-weight: bold; }
+        .severity-MEDIUM { color: #f1c40f; font-weight: bold; }
+        .severity-LOW { color: #3498db; font-weight: bold; }
+        .severity-INFO { color: #95a5a6; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Windows Security Audit Report</h1>
+        
+        <div class="score-card">
+            <h2>Overall Security Score</h2>
+            <div class="score">161 / 190</div>
+            <p>Score Percentage: 84.7%</p>
+        </div>
+
+        <h2>Category Breakdown</h2>
+        <table>
+            <tr>
+                <th>Category</th>
+                <th>Score</th>
+                <th>Maximum</th>
+            </tr>
+            
+            <tr>
+                <td>Defender</td>
+                <td>20</td>
+                <td>20</td>
+            </tr>
+            
+            <tr>
+                <td>Firewall</td>
+                <td>20</td>
+                <td>20</td>
+            </tr>
+            
+            <tr>
+                <td>Users</td>
+                <td>15</td>
+                <td>15</td>
+            </tr>
+            
+            <tr>
+                <td>Password Policy</td>
+                <td>10</td>
+                <td>15</td>
+            </tr>
+            
+            <tr>
+                <td>Updates</td>
+                <td>15</td>
+                <td>15</td>
+            </tr>
+            
+            <tr>
+                <td>Network</td>
+                <td>8</td>
+                <td>10</td>
+            </tr>
+            
+            <tr>
+                <td>Services</td>
+                <td>5</td>
+                <td>10</td>
+            </tr>
+            
+            <tr>
+                <td>Startup</td>
+                <td>10</td>
+                <td>10</td>
+            </tr>
+            
+            <tr>
+                <td>Software</td>
+                <td>0</td>
+                <td>10</td>
+            </tr>
+            
+            <tr>
+                <td>Event Logs</td>
+                <td>10</td>
+                <td>10</td>
+            </tr>
+            
+            <tr>
+                <td>Registry</td>
+                <td>8</td>
+                <td>15</td>
+            </tr>
+            
+            <tr>
+                <td>FIM</td>
+                <td>20</td>
+                <td>20</td>
+            </tr>
+            
+            <tr>
+                <td>Anomalies</td>
+                <td>20</td>
+                <td>20</td>
+            </tr>
+            
+        </table>
+
+        <h2>Security Findings</h2>
+        
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Software with Unknown Publisher</div>
+                    <div class="finding-meta">
+                        Category: Software | Severity: <span class="severity-LOW">LOW</span>
+                    </div>
+                    <p><strong>Description:</strong> The software 'Rustup: the Rust toolchain installer' does not have a verified publisher.</p>
+                    
+                    <p><strong>Recommendation:</strong> Verify if this software is legitimate or remove it if unnecessary.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Known Vulnerability in Cisco Packet Tracer 9.0.1 64Bit</div>
+                    <div class="finding-meta">
+                        Category: Software | Severity: <span class="severity-HIGH">HIGH</span>
+                    </div>
+                    <p><strong>Description:</strong> The NIST NVD reports vulnerabilities (e.g. CVE-1999-1216) for this software. Details: Cisco routers 9.17 and earlier allow remote attackers to bypass security restrictions via certain IP source routed packets that should normally be den...</p>
+                    
+                    <p><strong>Recommendation:</strong> Update Cisco Packet Tracer 9.0.1 64Bit to the latest version immediately or uninstall it.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Known Vulnerability in Git</div>
+                    <div class="finding-meta">
+                        Category: Software | Severity: <span class="severity-HIGH">HIGH</span>
+                    </div>
+                    <p><strong>Description:</strong> The NIST NVD reports vulnerabilities (e.g. CVE-2006-0477) for this software. Details: Buffer overflow in git-checkout-index in GIT before 1.1.5 allows remote attackers to execute arbitrary code via an index file with a long symbolic lin...</p>
+                    
+                    <p><strong>Recommendation:</strong> Update Git to the latest version immediately or uninstall it.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Known Vulnerability in PostgreSQL 18</div>
+                    <div class="finding-meta">
+                        Category: Software | Severity: <span class="severity-HIGH">HIGH</span>
+                    </div>
+                    <p><strong>Description:</strong> The NIST NVD reports vulnerabilities (e.g. CVE-2017-8806) for this software. Details: The Debian pg_ctlcluster, pg_createcluster, and pg_upgradecluster scripts, as distributed in the Debian postgresql-common package before 181+deb9u1 fo...</p>
+                    
+                    <p><strong>Recommendation:</strong> Update PostgreSQL 18 to the latest version immediately or uninstall it.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Unquoted Service Path</div>
+                    <div class="finding-meta">
+                        Category: Services | Severity: <span class="severity-HIGH">HIGH</span>
+                    </div>
+                    <p><strong>Description:</strong> Service 'CodexSandboxService.OpenAI.Codex' (ChatGPT) has an unquoted path with spaces: c:\program files\windowsapps\openai.codex_26.924.2738.0_x64__2p2nqsd0c76g0\app\resources\codex-windows-sandbox-service.exe</p>
+                    
+                    <p><strong>Recommendation:</strong> Enclose the service executable path in quotation marks in the Registry (HKLM\System\CurrentControlSet\Services).</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Windows File Sharing (SMB) Exposed</div>
+                    <div class="finding-meta">
+                        Category: Network | Severity: <span class="severity-MEDIUM">MEDIUM</span>
+                    </div>
+                    <p><strong>Description:</strong> SMB/NetBIOS (Port 445) is listening on all network interfaces.</p>
+                    
+                    <p><strong>Recommendation:</strong> Ensure SMBv1 is disabled and avoid exposing SMB directly to untrusted networks.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Weak Minimum Password Length</div>
+                    <div class="finding-meta">
+                        Category: Password Policy | Severity: <span class="severity-HIGH">HIGH</span>
+                    </div>
+                    <p><strong>Description:</strong> The minimum password length is set to 0 characters.</p>
+                    
+                    <p><strong>Recommendation:</strong> Increase the minimum password length to at least 8 (or 14+ for strict environments) to prevent brute-force attacks.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Baseline Established</div>
+                    <div class="finding-meta">
+                        Category: FIM | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> Initial SHA-256 baseline recorded for C:\Windows\System32\drivers\etc\hosts.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Baseline Established</div>
+                    <div class="finding-meta">
+                        Category: FIM | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> Initial SHA-256 baseline recorded for C:\Windows\System32\drivers\etc\lmhosts.sam.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Baseline Established</div>
+                    <div class="finding-meta">
+                        Category: FIM | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> Initial SHA-256 baseline recorded for C:\Windows\System32\sethc.exe.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Baseline Established</div>
+                    <div class="finding-meta">
+                        Category: FIM | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> Initial SHA-256 baseline recorded for C:\Windows\System32\utilman.exe.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Baseline Established</div>
+                    <div class="finding-meta">
+                        Category: FIM | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> Initial SHA-256 baseline recorded for C:\Windows\System32\osk.exe.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Baseline Established</div>
+                    <div class="finding-meta">
+                        Category: FIM | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> Initial SHA-256 baseline recorded for C:\Windows\System32\magnify.exe.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Baseline Established</div>
+                    <div class="finding-meta">
+                        Category: FIM | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> Initial SHA-256 baseline recorded for C:\Windows\System32\cmd.exe.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Baseline Established</div>
+                    <div class="finding-meta">
+                        Category: FIM | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> Initial SHA-256 baseline recorded for C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">ML Engine Unavailable</div>
+                    <div class="finding-meta">
+                        Category: Anomalies | Severity: <span class="severity-INFO">INFO</span>
+                    </div>
+                    <p><strong>Description:</strong> scikit-learn is not installed. Anomaly detection skipped.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">Weak LAN Manager Auth Level</div>
+                    <div class="finding-meta">
+                        Category: Registry | Severity: <span class="severity-HIGH">HIGH</span>
+                    </div>
+                    <p><strong>Description:</strong> LMCompatibilityLevel is set to None. NTLMv2 is not strictly enforced.</p>
+                    
+                    <p><strong>Recommendation:</strong> Set LMCompatibilityLevel to 5 to send NTLMv2 responses only and refuse LM & NTLM.</p>
+                    
+                </div>
+                
+            
+                
+                <div class="finding">
+                    <div class="finding-title">SMB Signing Not Enforced</div>
+                    <div class="finding-meta">
+                        Category: Registry | Severity: <span class="severity-MEDIUM">MEDIUM</span>
+                    </div>
+                    <p><strong>Description:</strong> SMB communication may be vulnerable to relay attacks.</p>
+                    
+                    <p><strong>Recommendation:</strong> Set RequireSecuritySignature to 1.</p>
+                    
+                </div>
+                
+            
+        
+    </div>
+</body>
+</html>

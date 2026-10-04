@@ -351,9 +351,13 @@ def main():
     display_registry(raw_data.get("registry_data"), [f for f in all_findings if isinstance(f, dict) and f.get("category") == "Registry"])
 
     # --------------------------
-    # Final Scoring
+    # Final Scoring & Compliance
     # --------------------------
     display_final_score(score_data)
+    
+    from modules.compliance import generate_compliance_report, display_compliance_report
+    compliance_report = generate_compliance_report(all_findings)
+    display_compliance_report(compliance_report)
 
     # --------------------------
     # Reporting
@@ -361,7 +365,7 @@ def main():
     print("\n" + "=" * 60)
     print("Generating Reports")
     print("=" * 60)
-    generate_json_report(score_data, all_findings)
+    generate_json_report(score_data, all_findings, compliance_report)
     generate_html_report(score_data, all_findings, CATEGORY_WEIGHTS)
 
     # --------------------------

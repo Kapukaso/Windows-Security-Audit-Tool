@@ -20,8 +20,8 @@ class TestSecurityPlatform(unittest.TestCase):
         
         score_data = calculate_score(all_findings, old_scores)
         
-        self.assertEqual(score_data['total_earned'], 135)
-        self.assertEqual(score_data['total_possible'], 135)
+        self.assertEqual(score_data['total_earned'], 190)
+        self.assertEqual(score_data['total_possible'], 190)
 
     def test_calculate_score_with_deductions(self):
         """
@@ -45,8 +45,8 @@ class TestSecurityPlatform(unittest.TestCase):
         
         score_data = calculate_score(all_findings, old_scores)
         
-        # Max score is 135. Minus 5 for a HIGH severity finding.
-        self.assertEqual(score_data['total_earned'], 130)
+        # Max score is 190. Minus 5 for a HIGH severity finding.
+        self.assertEqual(score_data['total_earned'], 185)
         # Updates category normally has a max of 15. It should now be 10.
         self.assertEqual(score_data['category_scores']['Updates'], 10)
 
@@ -72,7 +72,7 @@ class TestSecurityPlatform(unittest.TestCase):
         # Services category has a max weight of 10. 
         # Deducting 30 points should floor it at 0, not -20.
         self.assertEqual(score_data['category_scores']['Services'], 0)
-        self.assertEqual(score_data['total_earned'], 125) # Only lost the 10 points from Services
+        self.assertEqual(score_data['total_earned'], 180) # Only lost the 10 points from Services
 
 if __name__ == '__main__':
     unittest.main()

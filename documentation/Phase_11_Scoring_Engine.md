@@ -6,9 +6,9 @@ To make security telemetry actionable for non-technical stakeholders, it must be
 ## 11.2 Algorithm & Mathematics
 The engine operates on a Base-Weight and Severity-Deduction model.
 
-1. **Category Weights (Total 135 Points):**
+1. **Category Weights (Total 190 Points):**
    Categories are weighted by their systemic importance. 
-   `{Defender: 20, Firewall: 20, Users: 15, Passwords: 15, Updates: 15, Network: 10, Services: 10, Startup: 10, Software: 10, Logs: 10}`
+   `{Defender: 20, Firewall: 20, Users: 15, Passwords: 15, Updates: 15, Network: 10, Services: 10, Startup: 10, Software: 10, Logs: 10, Registry: 15, FIM: 20, Anomalies: 20}`
 
 2. **Severity Deductions:**
    Iterates through the `all_findings` array and applies subtraction logic.

@@ -7,7 +7,7 @@ import os
 import datetime
 from jinja2 import Environment, FileSystemLoader
 
-def generate_json_report(score_data, all_findings, output_dir="reports"):
+def generate_json_report(score_data, all_findings, compliance_report=None, output_dir="reports"):
     """
     Exports the complete audit results to a JSON file.
     """
@@ -22,6 +22,9 @@ def generate_json_report(score_data, all_findings, output_dir="reports"):
         "score_summary": score_data,
         "findings": all_findings
     }
+    
+    if compliance_report:
+        report_data["compliance"] = compliance_report
     
     with open(filepath, "w") as f:
         json.dump(report_data, f, indent=4)
