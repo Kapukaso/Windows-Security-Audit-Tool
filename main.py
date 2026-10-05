@@ -2,6 +2,7 @@ from tabulate import tabulate
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from modules import software
+from modules.threat_intel import scan_threat_intel
 from modules.system import get_system_info
 from modules.software import (
     get_installed_software,
@@ -115,6 +116,8 @@ def run_full_audit(progress_tracker=None):
         "ml": audit_anomalies,
         "registry": get_registry_security,
         "drivers": get_drivers
+    ,
+        "threat_intel": scan_threat_intel
     }
 
     results = {}

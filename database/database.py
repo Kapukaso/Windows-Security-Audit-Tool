@@ -14,6 +14,9 @@ DB_ENGINE = os.getenv("DB_ENGINE", "sqlite").lower()
 PG_URL = os.getenv("POSTGRES_URL", "postgresql://postgres:password@localhost:5432/defiant")
 SQLITE_PATH = "audit_history.db"
 
+# Backward compatibility for FIM modules which track states locally
+DB_PATH = SQLITE_PATH
+
 if DB_ENGINE == "postgres":
     import psycopg2
     import psycopg2.extras

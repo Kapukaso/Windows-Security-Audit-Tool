@@ -6,7 +6,6 @@ from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from main import run_full_audit
 from database.database import init_db, save_scan_results, get_scan_history
-from security.remediation import apply_remediation
 import psutil
 
 app = Flask(__name__)
@@ -77,17 +76,33 @@ def scan():
         SCAN_PROGRESS["message"] = f"Error: {str(e)}"
         return jsonify({"success": False, "error": str(e)}), 500
 
-@app.route('/api/remediate', methods=['POST'])
-def remediate():
-    """Applies automated hardening for a specific finding."""
+@app.route('/api/remediate/preview', methods=['POST'])
+def remediate_preview():
     data = request.json
-    finding_id = data.get("finding_id")
-    
-    if not finding_id:
-        return jsonify({"success": False, "message": "Missing finding_id"})
-        
-    result = apply_remediation(finding_id)
+    from security.remediation import get_remediation_preview
+    return jsonify(get_remediation_preview(data.get("finding_id")))
+
+@app.route('/api/remediate/execute', methods=['POST'])
+def remediate_execute():
+    data = request.json
+    from security.remediation import execute_remediation
+    result = execute_remediation(
+        finding_id=data.get("finding_id"),
+        approval_granted=data.get("approval_granted", False),
+        safe_only_policy=data.get("safe_only_policy", False)
+    )
     return jsonify(result)
+
+@app.route('/api/remediate/rollback', methods=['POST'])
+def remediate_rollback():
+    data = request.json
+    from security.remediation import rollback_remediation
+    return jsonify(rollback_remediation(data.get("finding_id")))
+
+@app.route('/api/remediate/history', methods=['GET'])
+def remediate_history():
+    from security.remediation import get_remediation_history
+    return jsonify({"success": True, "history": get_remediation_history()})
 
 @app.route('/api/fim/reset', methods=['POST'])
 def reset_fim():

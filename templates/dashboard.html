@@ -463,9 +463,9 @@
             try {
                 const res = await fetch('/api/fim/reset', { method: 'POST' });
                 const data = await res.json();
-                alert(data.message || data.error);
+                showToast('FIM Reset', data.message || data.error, data.success ? 'success' : 'error');
             } catch(e) {
-                alert("Failed to reset FIM.");
+                showToast('Error', 'Failed to reset FIM.', 'error');
             }
         }
 
@@ -508,10 +508,10 @@
                 if(data.success) {
                     renderResults(data);
                 } else {
-                    alert("Scan failed: " + data.error);
+                    showToast('Scan Failed', data.error, 'error');
                 }
             } catch (err) {
-                alert("Network Error: " + err.message + "\nMake sure the Flask server is running.");
+                showToast('Network Error', 'Make sure the Flask server is running.', 'error');
             } finally {
                 if (progressInterval) clearInterval(progressInterval);
                 btn.disabled = false;
@@ -614,31 +614,126 @@
             }
         }
 
-        async function fixFinding(id) {
-            if(!confirm(`WARNING: Deploy automated fix for vulnerability [${id}]?`)) return;
+        
+        // Toast System
+        function showToast(title, message, type='info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let colorClass = 'border-hud-cyan bg-cyan-900/30 text-hud-cyan';
+            let icon = 'info';
+            
+            if(type === 'error') {
+                colorClass = 'border-hud-red bg-red-900/30 text-hud-red';
+                icon = 'alert-octagon';
+            } else if(type === 'success') {
+                colorClass = 'border-green-500 bg-green-900/30 text-green-400';
+                icon = 'check-circle';
+            } else if(type === 'warning') {
+                colorClass = 'border-hud-amber bg-amber-900/30 text-hud-amber';
+                icon = 'alert-triangle';
+            }
 
+            toast.className = `flex items-start gap-3 p-4 border rounded-lg backdrop-blur shadow-lg transform transition-all duration-300 translate-x-full ${colorClass}`;
+            toast.innerHTML = `
+                <i data-lucide="${icon}" class="w-5 h-5 mt-0.5"></i>
+                <div>
+                    <h4 class="font-bold text-sm uppercase tracking-wider">${title}</h4>
+                    <p class="text-sm mt-1 opacity-90 text-white font-mono">${message}</p>
+                </div>
+                <button onclick="this.parentElement.remove()" class="ml-auto opacity-70 hover:opacity-100"><i data-lucide="x" class="w-4 h-4"></i></button>
+            `;
+            
+            container.appendChild(toast);
+            lucide.createIcons();
+            
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 10);
+            
+            // Auto remove
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-x-full');
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+        }
+
+        // Remediation UI Logic
+        let currentRemediationId = null;
+
+        function closeRemediationModal() {
+            document.getElementById('remediation-modal').classList.add('hidden');
+        }
+
+        async function fixFinding(id) {
+            currentRemediationId = id;
             try {
-                const response = await fetch('/api/remediate', {
+                // Fetch Preview
+                const res = await fetch('/api/remediate/preview', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ finding_id: id })
                 });
+                const data = await res.json();
                 
-                const data = await response.json();
-                
-                if(data.success) {
-                    alert('SUCCESS: ' + data.message);
-                    removeFindingFromUI(id);
-                } else if(data.playbook) {
-                    showPlaybookModal(data.message, data.playbook);
-                } else {
-                    alert('FAILURE: ' + data.message);
+                if(!data.supported) {
+                    showToast('Unsupported', data.message, 'warning');
+                    return;
                 }
-            } catch (err) {
-                alert("Error connecting to backend API.");
+
+                // Populate Modal
+                document.getElementById('rem-finding-id').innerText = data.finding_id;
+                document.getElementById('rem-description').innerText = data.description;
+                document.getElementById('rem-preview').innerText = data.preview;
+                
+                const riskBadge = document.getElementById('rem-risk-level');
+                riskBadge.innerText = data.risk_level;
+                riskBadge.className = 'px-3 py-1 rounded text-sm font-bold mt-1';
+                
+                if(data.risk_level === 'SAFE') {
+                    riskBadge.classList.add('bg-green-900', 'text-green-400');
+                } else if(data.risk_level === 'MEDIUM') {
+                    riskBadge.classList.add('bg-hud-amber', 'text-black');
+                } else {
+                    riskBadge.classList.add('bg-hud-red', 'text-white', 'animate-pulse');
+                }
+
+                // Show Modal
+                document.getElementById('remediation-modal').classList.remove('hidden');
+                
+                // Bind execution button
+                document.getElementById('rem-execute-btn').onclick = async () => {
+                    closeRemediationModal();
+                    await executeRemediation(id);
+                };
+
+            } catch (e) {
+                showToast('Error', 'Failed to fetch remediation preview.', 'error');
             }
         }
-        
+
+        async function executeRemediation(id) {
+            showToast('Executing', `Applying fix for ${id}...`, 'info');
+            try {
+                const res = await fetch('/api/remediate/execute', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ finding_id: id, approval_granted: true })
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    showToast('Success', data.message, 'success');
+                    removeFindingFromUI(id);
+                } else {
+                    showToast('Execution Blocked/Failed', data.message, 'error');
+                }
+            } catch(e) {
+                showToast('Error', 'Failed to connect to backend.', 'error');
+            }
+        }
+
         function removeFindingFromUI(id) {
             const rows = document.querySelectorAll('#findingsList > div');
             rows.forEach(row => {
@@ -681,6 +776,53 @@
             }
         }
     </script>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <!-- Remediation Approval Modal -->
+    <div id="remediation-modal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-gray-900 border border-hud-cyan rounded-lg w-full max-w-2xl overflow-hidden shadow-2xl shadow-hud-cyan/20">
+            <div class="bg-gray-800 p-4 border-b border-gray-700 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="shield-alert" class="w-6 h-6 text-hud-cyan"></i>
+                    Remediation Preview
+                </h3>
+                <button onclick="closeRemediationModal()" class="text-gray-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-sm text-gray-400">Target Finding</span>
+                        <h4 id="rem-finding-id" class="text-lg font-mono text-white font-bold">NET-002</h4>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-sm text-gray-400">Risk Level</span>
+                        <div id="rem-risk-level" class="px-3 py-1 rounded text-sm font-bold mt-1">HIGH</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <span class="text-sm text-gray-400">Description</span>
+                    <p id="rem-description" class="text-gray-200 mt-1"></p>
+                </div>
+
+                <div>
+                    <span class="text-sm text-gray-400">Execution Preview (Impact)</span>
+                    <div id="rem-preview" class="bg-black border border-gray-700 p-3 rounded mt-1 text-sm font-mono text-gray-300"></div>
+                </div>
+            </div>
+            <div class="bg-gray-800 p-4 border-t border-gray-700 flex justify-end gap-3">
+                <button onclick="closeRemediationModal()" class="px-4 py-2 rounded font-semibold text-gray-300 hover:bg-gray-700 transition">Cancel</button>
+                <button id="rem-execute-btn" class="px-6 py-2 bg-hud-cyan text-black rounded font-bold hover:bg-cyan-400 transition shadow-[0_0_15px_rgba(0,255,255,0.4)]">
+                    Approve & Execute
+                </button>
+            </div>
+        </div>
+    </div>
+
 </body>
 </html>
 
