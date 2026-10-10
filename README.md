@@ -1,11 +1,11 @@
-# Defiant: Windows Security Audit Tool
+# Defiant (Windows Security Audit Tool)
 
 ![Platform](https://img.shields.io/badge/Platform-Windows-blue.svg)
 ![Language](https://img.shields.io/badge/Language-Python_3.10+-yellow.svg)
 ![Framework](https://img.shields.io/badge/Framework-Flask-lightgrey.svg)
 ![Database](https://img.shields.io/badge/Database-SQLite%20%7C%20PostgreSQL-green.svg)
 
-Defiant is a Windows security auditing dashboard. It collects local system and security data, reports findings with severity levels, calculates a weighted posture score, and records scan history. The web interface also provides remediation preview, execution, and rollback operations.
+Defiant is a lightweight prototype for auditing Windows security posture. It collects local system data, reports findings with severity levels, calculates a weighted score, and records scan history. The web dashboard also supports reviewing, executing, and rolling back selected hardening actions.
 
 ## Screenshots
 
@@ -21,10 +21,11 @@ Defiant is a Windows security auditing dashboard. It collects local system and s
 
 - Audits Defender, firewall settings, local users, installed software and CVEs, services, startup applications, listening ports, password policy, Windows updates, event logs, file integrity, anomalies, registry settings, and vulnerable drivers.
 - Calculates a weighted score across 13 categories, with a maximum of 190 points.
+- Maps threat-pattern detections to MITRE ATT&CK technique IDs.
 - Stores scan history and telemetry in SQLite by default, with optional PostgreSQL support.
 - Provides live system telemetry and a browser-based dashboard.
 - Supports optional CrowdStrike Falcon IOC lookups. Without Falcon credentials, the threat-intelligence module uses its local IOC data.
-- Verifies file signatures on Windows using the platform's WinVerifyTrust API.
+- Checks Windows file signatures using the platform's WinVerifyTrust API to help assess process findings.
 
 ## Requirements
 
@@ -94,3 +95,7 @@ python -m unittest tests/test_audit.py
 ## Safe use
 
 Use this tool only on systems you own or are authorized to assess. Review remediation previews before applying changes. Some checks and remediation actions require elevated privileges.
+
+## License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE).

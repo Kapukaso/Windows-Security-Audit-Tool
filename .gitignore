@@ -1,6 +1,8 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
+*.pyd
 *$py.class
 
 # C extensions
@@ -41,4 +43,3 @@ node_frontend/node_modules/
 /documentation
 .defiant_config.json
 /.agents
-/__pycache__/
