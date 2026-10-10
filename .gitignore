@@ -40,3 +40,5 @@ Thumbs.db
 node_frontend/node_modules/
 /documentation
 .defiant_config.json
+/.agents
+/__pycache__/
