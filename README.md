@@ -7,6 +7,16 @@
 
 Defiant is a Windows security auditing dashboard. It collects local system and security data, reports findings with severity levels, calculates a weighted posture score, and records scan history. The web interface also provides remediation preview, execution, and rollback operations.
 
+## Screenshots
+
+**Dashboard ready to run an audit**
+
+![Defiant dashboard before an audit](screenshots/dashboard-ready.png)
+
+**Dashboard showing audit results**
+
+![Defiant dashboard with security audit results](screenshots/dashboard-audit-results.png)
+
 ## Features
 
 - Audits Defender, firewall settings, local users, installed software and CVEs, services, startup applications, listening ports, password policy, Windows updates, event logs, file integrity, anomalies, registry settings, and vulnerable drivers.
