@@ -10,19 +10,13 @@ import time
 import os
 import sys
 
-# Default to None
-NVD_API_KEY = None
+from dotenv import load_dotenv
 
-# Attempt to load from a persistent config file in the user's home directory
-try:
-    home_dir = os.path.expanduser("~")
-    config_path = os.path.join(home_dir, '.defiant_config.json')
-    if os.path.exists(config_path):
-        with open(config_path, 'r') as f:
-            config_data = json.load(f)
-            NVD_API_KEY = config_data.get("NVD_API_KEY")
-except Exception:
-    pass
+# Ensure environment variables are loaded from .env
+load_dotenv()
+
+# NIST NVD API Key from centralized .env
+NVD_API_KEY = os.getenv("NVD_API_KEY")
 
 # NIST NVD limits: 
 # Without API Key: 5 requests per 30 seconds (1 req / 6 sec)
