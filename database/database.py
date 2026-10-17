@@ -35,6 +35,21 @@ def is_postgres(conn):
             pass
     return type(conn).__module__.startswith("psycopg2")
 
+def sanitize_null_bytes(val):
+    """
+    Recursively strips NUL (0x00) characters from strings, dicts, lists, and tuples
+    to prevent PostgreSQL/psycopg2 'ValueError: A string literal cannot contain NUL (0x00) characters'.
+    """
+    if isinstance(val, str):
+        return val.replace("\x00", "")
+    elif isinstance(val, dict):
+        return {sanitize_null_bytes(k): sanitize_null_bytes(v) for k, v in val.items()}
+    elif isinstance(val, list):
+        return [sanitize_null_bytes(item) for item in val]
+    elif isinstance(val, tuple):
+        return tuple(sanitize_null_bytes(item) for item in val)
+    return val
+
 def get_connection():
     """
     Returns an active database connection.
@@ -160,6 +175,7 @@ def init_db():
 
 def maintain_database(retention_days=7, max_scans=100):
     """Prunes stale telemetry, old scan findings, and expired CVE cache records."""
+    conn = None
     try:
         conn = get_connection()
         cursor = conn.cursor()
@@ -174,12 +190,16 @@ def maintain_database(retention_days=7, max_scans=100):
             cursor.execute(f"DELETE FROM scans WHERE id NOT IN (SELECT id FROM scans ORDER BY id DESC LIMIT {max_scans})")
             cursor.execute("DELETE FROM findings WHERE scan_id NOT IN (SELECT id FROM scans)")
             cursor.execute("DELETE FROM nvd_cve_cache WHERE timestamp < datetime('now', '-30 days')")
-            cursor.execute("VACUUM")
             
         conn.commit()
-        conn.close()
     except Exception:
         pass
+    finally:
+        if conn is not None:
+            try:
+                conn.close()
+            except Exception:
+                pass
 
 def save_telemetry(cpu_percent, ram_percent):
     init_db()
@@ -217,6 +237,9 @@ def get_telemetry_baseline(limit=200):
         conn.close()
 
 def save_scan_results(system_info, score_data, all_findings):
+    system_info = sanitize_null_bytes(system_info)
+    score_data = sanitize_null_bytes(score_data)
+    all_findings = sanitize_null_bytes(all_findings)
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
@@ -308,6 +331,7 @@ def get_scan_history():
 
 def get_fim_baseline(file_path):
     """Returns the recorded SHA-256 hash for a given file path, or None if unbaselined."""
+    file_path = sanitize_null_bytes(file_path)
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
@@ -323,6 +347,8 @@ def get_fim_baseline(file_path):
 
 def save_fim_baseline(file_path, sha256_hash):
     """Establishes or updates the cryptographic hash baseline for a file path."""
+    file_path = sanitize_null_bytes(file_path)
+    sha256_hash = sanitize_null_bytes(sha256_hash)
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
@@ -371,6 +397,8 @@ def get_cve_cache(software_name, software_version=None, max_age_days=7):
     Retrieves cached CVE JSON data if recorded within max_age_days (D-03).
     Returns parsed list/dict or None if not cached or expired.
     """
+    software_name = sanitize_null_bytes(software_name)
+    software_version = sanitize_null_bytes(software_version)
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
@@ -422,11 +450,15 @@ def get_cve_cache(software_name, software_version=None, max_age_days=7):
 
 def save_cve_cache(software_name, software_version, cve_data):
     """Stores CVE JSON data in nvd_cve_cache (D-03)."""
+    software_name = sanitize_null_bytes(software_name)
+    software_version = sanitize_null_bytes(software_version)
+    cve_data = sanitize_null_bytes(cve_data)
     init_db()
     conn = get_connection()
     cursor = conn.cursor()
     timestamp = datetime.now().isoformat()
     payload = json.dumps(cve_data) if not isinstance(cve_data, str) else cve_data
+    payload = payload.replace("\x00", "")
     
     try:
         if is_postgres(conn):

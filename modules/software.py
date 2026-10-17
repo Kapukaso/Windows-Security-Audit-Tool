@@ -156,7 +156,7 @@ def get_installed_software():
         if not location:
             location = "Unknown"
 
-        name_stripped = name.strip()
+        name_stripped = name.strip().replace("\x00", "")
         
         # Deduplication using Name and Version as a composite key
         unique_key = f"{name_stripped}::{version}"
@@ -166,9 +166,9 @@ def get_installed_software():
 
         software_item = {
             "Name": name_stripped,
-            "Version": version,
-            "Publisher": publisher.strip() if isinstance(publisher, str) else publisher,
-            "Install Location": location
+            "Version": version.replace("\x00", "") if isinstance(version, str) else version,
+            "Publisher": publisher.strip().replace("\x00", "") if isinstance(publisher, str) else publisher,
+            "Install Location": location.replace("\x00", "") if isinstance(location, str) else location
         }
 
         # Add category

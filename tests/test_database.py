@@ -202,3 +202,66 @@ def test_postgres_fallback_to_sqlite(monkeypatch, tmp_path):
     conn = target_db.get_connection()
     assert isinstance(conn, sqlite3.Connection)
     conn.close()
+
+
+def test_sanitize_null_bytes_prevents_nul_errors(in_memory_db):
+    """
+    Verifies that sanitize_null_bytes strips NUL (0x00) characters from strings,
+    lists, and dicts, and ensures data with embedded NUL characters can be stored
+    cleanly in database functions without raising 'A string literal cannot contain NUL'.
+    """
+    from database.database import sanitize_null_bytes
+
+    # 1. Test basic string sanitization
+    raw_str = "Google\x00 Chrome\x00"
+    cleaned = sanitize_null_bytes(raw_str)
+    assert cleaned == "Google Chrome"
+    assert "\x00" not in cleaned
+
+    # 2. Test nested dict & list sanitization
+    nested_data = {
+        "title\x00": "Vulnerability\x00 Detected",
+        "tags": ["critical\x00", {"id\x00": "DEF-\x00001"}]
+    }
+    clean_nested = sanitize_null_bytes(nested_data)
+    assert "title" in clean_nested
+    assert clean_nested["title"] == "Vulnerability Detected"
+    assert clean_nested["tags"][0] == "critical"
+    assert clean_nested["tags"][1]["id"] == "DEF-001"
+
+    # 3. Test saving scan results containing embedded NUL characters
+    sys_info = {"Hostname": "TEST-HOST\x00-CORRUPTED"}
+    score_data = {"total_earned": 90, "total_possible": 100, "percentage": 90.0}
+    findings = [{
+        "id": "CORRUPT\x00-001",
+        "category": "Registry\x00",
+        "severity": "HIGH\x00",
+        "title": "Corrupt registry string with nulls\x00 here"
+    }]
+    scan_id = save_scan_results(sys_info, score_data, findings)
+    assert scan_id is not None
+
+    # Verify stored data does not contain \x00
+    cursor = in_memory_db.cursor()
+    cursor.execute("SELECT hostname FROM scans WHERE id = ?", (scan_id,))
+    stored_host = cursor.fetchone()[0]
+    assert "\x00" not in stored_host
+    assert stored_host == "TEST-HOST-CORRUPTED"
+
+    cursor.execute("SELECT finding_id, category, severity, title FROM findings WHERE scan_id = ?", (scan_id,))
+    stored_finding = cursor.fetchone()
+    for field in stored_finding:
+        assert "\x00" not in str(field)
+    cursor.close()
+    in_memory_db.commit()
+
+    # 4. Test saving CVE cache with NUL bytes
+    save_cve_cache("App\x00WithNull", "1.0\x00", [{"desc": "CVE\x00 description"}])
+    cached = get_cve_cache("AppWithNull", "1.0")
+    assert cached is not None
+
+    # 5. Test saving FIM baseline with NUL bytes
+    save_fim_baseline("C:\\test\\file\x00.exe", "hash\x00123")
+    retrieved = get_fim_baseline("C:\\test\\file.exe")
+    assert retrieved == "hash123"
+

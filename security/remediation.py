@@ -76,6 +76,10 @@ PLAYBOOKS = {
 
 def log_remediation_action(finding_id, action_type, status, message):
     """Logs remediation execution or rollback into the database."""
+    finding_id = str(finding_id).replace("\x00", "")
+    action_type = str(action_type).replace("\x00", "")
+    status = str(status).replace("\x00", "")
+    message = str(message).replace("\x00", "") if message else ""
     try:
         conn = get_connection()
         cursor = conn.cursor()

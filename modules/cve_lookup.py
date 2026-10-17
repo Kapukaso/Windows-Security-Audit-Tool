@@ -81,16 +81,18 @@ def _format_cve_finding(app_name, cves):
     if not cves or not isinstance(cves, list):
         return None
     first_cve = cves[0].get("cve", {})
-    cve_id = first_cve.get("id", "Unknown CVE")
-    desc = first_cve.get("descriptions", [{"value": "Known vulnerability"}])[0].get("value")
+    cve_id = str(first_cve.get("id", "Unknown CVE")).replace("\x00", "")
+    desc_raw = first_cve.get("descriptions", [{"value": "Known vulnerability"}])[0].get("value", "")
+    desc = str(desc_raw).replace("\x00", "")
+    clean_app_name = str(app_name).replace("\x00", "")
     
     return {
-        "id": f"CVE|{app_name}",
+        "id": f"CVE|{clean_app_name}",
         "category": "Software",
         "severity": "HIGH",
-        "title": f"Known Vulnerability in {app_name}",
+        "title": f"Known Vulnerability in {clean_app_name}",
         "description": f"The NIST NVD reports vulnerabilities (e.g. {cve_id}) for this software. Details: {desc[:150]}...",
-        "recommendation": f"Update {app_name} to the latest version immediately or uninstall it."
+        "recommendation": f"Update {clean_app_name} to the latest version immediately or uninstall it."
     }
 
 def audit_software_cves(software_list, progress_tracker=None, force_refresh=False):
