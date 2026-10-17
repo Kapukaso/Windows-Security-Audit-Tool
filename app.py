@@ -1,7 +1,7 @@
-"""
-app.py
-Web-based Dashboard and Hardening Platform using Flask.
-"""
+import os
+import hmac
+import secrets
+from functools import wraps
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from main import run_full_audit
@@ -10,6 +10,32 @@ import psutil
 
 app = Flask(__name__)
 CORS(app)
+
+# API Authentication configuration
+DEFIANT_API_KEY = os.getenv("DEFIANT_API_KEY", "").strip()
+if not DEFIANT_API_KEY:
+    ACTIVE_API_KEY = secrets.token_urlsafe(32)
+    print(f"[SECURITY] Generated ephemeral DEFIANT_API_KEY: {ACTIVE_API_KEY}")
+else:
+    ACTIVE_API_KEY = DEFIANT_API_KEY
+
+def require_auth(f):
+    """Decorator to require valid API key in X-Defiant-Key or Authorization header."""
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        client_key = request.headers.get("X-Defiant-Key")
+        if not client_key:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                client_key = auth_header[7:].strip()
+
+        if not client_key or not hmac.compare_digest(str(client_key), str(ACTIVE_API_KEY)):
+            return jsonify({
+                "success": False,
+                "error": "Unauthorized: Valid API key required in X-Defiant-Key or Authorization header"
+            }), 401
+        return f(*args, **kwargs)
+    return decorated_function
 
 # Store latest results in memory for the frontend
 LATEST_SCAN = {
@@ -27,7 +53,7 @@ SCAN_PROGRESS = {
 @app.route('/')
 def index():
     """Renders the main dashboard."""
-    return render_template('dashboard.html')
+    return render_template('dashboard.html', api_key=ACTIVE_API_KEY)
 
 @app.route('/api/scan/progress', methods=['GET'])
 def progress():
@@ -83,6 +109,7 @@ def remediate_preview():
     return jsonify(get_remediation_preview(data.get("finding_id")))
 
 @app.route('/api/remediate/execute', methods=['POST'])
+@require_auth
 def remediate_execute():
     data = request.json
     from security.remediation import execute_remediation
@@ -94,6 +121,7 @@ def remediate_execute():
     return jsonify(result)
 
 @app.route('/api/remediate/rollback', methods=['POST'])
+@require_auth
 def remediate_rollback():
     data = request.json
     from security.remediation import rollback_remediation
@@ -105,6 +133,7 @@ def remediate_history():
     return jsonify({"success": True, "history": get_remediation_history()})
 
 @app.route('/api/fim/reset', methods=['POST'])
+@require_auth
 def reset_fim():
     """Resets FIM baselines after an authorized change."""
     try:
@@ -144,9 +173,10 @@ def telemetry():
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/shutdown', methods=['POST'])
+@require_auth
 def shutdown():
     """Shuts down the backend server."""
-    import os, signal
+    import signal
     os.kill(os.getpid(), signal.SIGINT)
     return jsonify({"success": True, "message": "Server shutting down..."})
 
