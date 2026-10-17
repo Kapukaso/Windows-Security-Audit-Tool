@@ -136,6 +136,9 @@
         <div class="nav-item flex items-center gap-4 p-3 text-hud-dim font-mono text-lg font-semibold mb-2 cursor-pointer transition-all border-l-[3px] border-transparent hover:text-hud-primary hover:bg-hud-primary/5 hover:border-hud-secondary" onclick="switchTab('history')" id="nav-history">
             <i data-lucide="database" class="w-5 h-5"></i> Audit Logs
         </div>
+        <div class="nav-item flex items-center gap-4 p-3 text-hud-dim font-mono text-lg font-semibold mb-2 cursor-pointer transition-all border-l-[3px] border-transparent hover:text-hud-primary hover:bg-hud-primary/5 hover:border-hud-secondary" onclick="switchTab('remediation')" id="nav-remediation">
+            <i data-lucide="shield-check" class="w-5 h-5"></i> Remediation Log
+        </div>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -312,6 +315,40 @@
             </div>
         </div>
 
+        <!-- REMEDIATION VIEW -->
+        <div id="view-remediation" class="view-section">
+            <div class="flex justify-between items-end mb-8 border-b border-hud-secondary pb-4 relative">
+                <div class="absolute -bottom-[1px] right-0 w-24 h-[1px] bg-hud-primary shadow-hud"></div>
+                <div>
+                    <h1 class="text-4xl font-bold mb-1 tracking-widest text-white text-glow">Remediation Archive</h1>
+                    <p class="text-hud-primary font-mono text-sm tracking-widest">
+                        HOST HARDENING &amp; ROLLBACK LEDGER
+                    </p>
+                </div>
+                <button onclick="loadRemediationHistory()" class="clip-btn bg-transparent text-hud-primary border border-hud-primary px-6 py-2 font-mono font-semibold flex items-center gap-2 hover:bg-hud-primary hover:text-black transition-all shadow-hud-inset hover:shadow-hud">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i> FETCH_LOGS
+                </button>
+            </div>
+
+            <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
+                <table id="remediationTable" class="w-full border-collapse">
+                    <thead>
+                        <tr>
+                            <th class="text-left p-4 font-mono text-sm text-hud-primary font-semibold tracking-[2px] bg-hud-primary/5 border-b border-hud-secondary">TIMESTAMP</th>
+                            <th class="text-left p-4 font-mono text-sm text-hud-primary font-semibold tracking-[2px] bg-hud-primary/5 border-b border-hud-secondary">FINDING_ID</th>
+                            <th class="text-left p-4 font-mono text-sm text-hud-primary font-semibold tracking-[2px] bg-hud-primary/5 border-b border-hud-secondary">ACTION</th>
+                            <th class="text-left p-4 font-mono text-sm text-hud-primary font-semibold tracking-[2px] bg-hud-primary/5 border-b border-hud-secondary">STATUS</th>
+                            <th class="text-left p-4 font-mono text-sm text-hud-primary font-semibold tracking-[2px] bg-hud-primary/5 border-b border-hud-secondary">MESSAGE</th>
+                            <th class="text-right p-4 font-mono text-sm text-hud-primary font-semibold tracking-[2px] bg-hud-primary/5 border-b border-hud-secondary">CONTROLS</th>
+                        </tr>
+                    </thead>
+                    <tbody id="remediationBody">
+                        <tr><td colspan="6" class="text-center p-6 font-mono text-sm border-b border-hud-secondary text-hud-dim">[ NO_REMEDIATIONS_LOGGED — Deploy fixes from the System Posture tab to record hardening events ]</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -370,6 +407,8 @@
                 telemetryInterval = setInterval(loadTelemetry, 1500);
             } else if (tabId === 'history') {
                 loadHistory();
+            } else if (tabId === 'remediation') {
+                loadRemediationHistory();
             }
         }
 
@@ -468,6 +507,66 @@
             } catch (err) { console.error("History failed: ", err); }
         }
 
+        // REMEDIATION HISTORY API
+        async function loadRemediationHistory() {
+            try {
+                const res = await fetch('/api/remediate/history');
+                const data = await res.json();
+                const tbody = document.getElementById('remediationBody');
+                if(!tbody) return;
+                
+                if(data.success && data.history && data.history.length > 0) {
+                    tbody.innerHTML = '';
+                    
+                    data.history.forEach((item) => {
+                        let statusBadgeClass = 'border-green-500/50 bg-green-950/40 text-green-400';
+                        if (item.status === 'FAILED') {
+                            statusBadgeClass = 'border-hud-alert/50 bg-red-950/40 text-hud-alert';
+                        } else if (item.status === 'BLOCKED') {
+                            statusBadgeClass = 'border-hud-warn/50 bg-amber-950/40 text-hud-warn';
+                        } else if (item.action_type === 'ROLLBACK') {
+                            statusBadgeClass = 'border-hud-dim/50 bg-hud-dim/10 text-hud-dim';
+                        }
+                        
+                        let actionBadgeClass = item.action_type === 'EXECUTE' 
+                            ? 'border-hud-primary/40 bg-hud-primary/10 text-hud-primary' 
+                            : 'border-purple-500/40 bg-purple-950/40 text-purple-300';
+
+                        let rollbackBtn = '';
+                        if(item.action_type === 'EXECUTE' && item.status === 'SUCCESS') {
+                            const safeMsg = (item.message || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                            rollbackBtn = `
+                                <button onclick="openRollbackModal('${item.finding_id}', '${safeMsg}')" class="clip-btn bg-transparent text-hud-warn border border-hud-warn px-3 py-1 font-mono text-xs font-semibold hover:bg-hud-warn hover:text-black transition-all">
+                                    <i data-lucide="rotate-ccw" class="w-3 h-3 inline-block mr-1"></i> ROLLBACK
+                                </button>
+                            `;
+                        }
+
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-hud-primary/5 transition-colors">
+                                <td class="text-left p-4 font-mono text-sm border-b border-hud-secondary text-hud-dim">${new Date(item.timestamp).toLocaleString()}</td>
+                                <td class="text-left p-4 font-mono text-sm border-b border-hud-secondary text-hud-primary font-bold">[${item.finding_id}]</td>
+                                <td class="text-left p-4 font-mono text-xs border-b border-hud-secondary">
+                                    <span class="px-2 py-0.5 border rounded ${actionBadgeClass} font-mono">${item.action_type}</span>
+                                </td>
+                                <td class="text-left p-4 font-mono text-xs border-b border-hud-secondary">
+                                    <span class="px-2 py-0.5 border rounded ${statusBadgeClass} font-mono">${item.status}</span>
+                                </td>
+                                <td class="text-left p-4 font-mono text-sm border-b border-hud-secondary text-gray-300">${item.message || 'Action executed'}</td>
+                                <td class="text-right p-4 font-mono text-sm border-b border-hud-secondary">${rollbackBtn}</td>
+                            </tr>
+                        `;
+                    });
+                    lucide.createIcons();
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center p-6 font-mono text-sm border-b border-hud-secondary text-hud-dim">[ NO_REMEDIATIONS_LOGGED — Deploy fixes from the System Posture tab to record hardening events ]</td></tr>';
+                }
+            } catch(e) {
+                console.error("Failed to load remediation history:", e);
+                showToast('History Error', 'Failed to fetch remediation history.', 'error');
+            }
+        }
+
         async function resetFIM() {
             if(!confirm("Are you sure you want to reset FIM baselines?")) return;
             try {
@@ -521,6 +620,11 @@
             try {
                 const response = await fetch('/api/scan', { method: 'POST' });
                 const data = await response.json();
+                
+                if (response.status === 409) {
+                    showToast('Scan in Progress', data.error || 'A security scan is already in progress. Please wait for it to complete.', 'warning');
+                    return;
+                }
                 
                 if(data.success) {
                     renderResults(data);
@@ -747,11 +851,63 @@
                 if(data.success) {
                     showToast('Success', data.message, 'success');
                     removeFindingFromUI(id);
+                    loadRemediationHistory();
                 } else {
                     showToast('Execution Blocked/Failed', data.message, 'error');
                 }
             } catch(e) {
                 showToast('Error', 'Failed to connect to backend.', 'error');
+            }
+        }
+
+        // ROLLBACK CONTROLS
+        let currentRollbackId = null;
+
+        function openRollbackModal(findingId, desc) {
+            currentRollbackId = findingId;
+            const fidEl = document.getElementById('rb-finding-id');
+            const descEl = document.getElementById('rb-description');
+            if(fidEl) fidEl.innerText = findingId;
+            if(descEl) descEl.innerText = desc || 'Revert previously applied hardening changes.';
+            
+            const modal = document.getElementById('rollback-modal');
+            if(modal) modal.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeRollbackModal() {
+            const modal = document.getElementById('rollback-modal');
+            if(modal) modal.classList.add('hidden');
+            currentRollbackId = null;
+        }
+
+        async function confirmRollback() {
+            if(!currentRollbackId) return;
+            const fid = currentRollbackId;
+            closeRollbackModal();
+            
+            showToast('Rolling Back', `Reverting fix for ${fid}...`, 'info');
+            try {
+                const res = await fetch('/api/remediate/rollback', {
+                    method: 'POST',
+                    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ finding_id: fid })
+                });
+                
+                if (res.status === 401) {
+                    showToast('Authentication Error', 'Unauthorized: Invalid or missing API key.', 'error');
+                    return;
+                }
+                
+                const data = await res.json();
+                if(data.success) {
+                    showToast('Rollback Complete', data.message || `System restored for ${fid}`, 'success');
+                    await loadRemediationHistory();
+                } else {
+                    showToast('Rollback Failed', data.message || 'Execution error during rollback.', 'error');
+                }
+            } catch(e) {
+                showToast('Error', 'Failed to connect to backend for rollback.', 'error');
             }
         }
 
@@ -846,6 +1002,49 @@
                 <button onclick="closeRemediationModal()" class="px-4 py-2 rounded font-semibold text-gray-300 hover:bg-gray-700 transition">Cancel</button>
                 <button id="rem-execute-btn" class="px-6 py-2 bg-hud-cyan text-black rounded font-bold hover:bg-cyan-400 transition shadow-[0_0_15px_rgba(0,255,255,0.4)]">
                     Approve & Execute
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rollback Confirmation Modal -->
+    <div id="rollback-modal" class="fixed inset-0 bg-black/80 hidden z-50 flex items-center justify-center backdrop-blur-sm">
+        <div class="bg-[#00141e] border-2 border-hud-warn rounded-lg w-full max-w-xl overflow-hidden shadow-2xl shadow-hud-warn/20 clip-hud relative">
+            <div class="bg-amber-950/40 p-4 border-b border-hud-warn/40 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-hud-warn flex items-center gap-2">
+                    <i data-lucide="rotate-ccw" class="w-6 h-6 text-hud-warn"></i>
+                    REMEDIATION ROLLBACK CONFIRMATION
+                </h3>
+                <button onclick="closeRollbackModal()" class="text-gray-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4 font-mono">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <span class="text-xs text-hud-dim uppercase">Target Finding</span>
+                        <h4 id="rb-finding-id" class="text-lg font-bold text-white font-mono">NET-002</h4>
+                    </div>
+                    <div class="text-right">
+                        <span class="text-xs text-hud-dim uppercase">Action</span>
+                        <div class="px-2 py-0.5 rounded text-xs font-bold border border-hud-warn text-hud-warn bg-hud-warn/10 mt-1">REVERT POLICY</div>
+                    </div>
+                </div>
+                
+                <div>
+                    <span class="text-xs text-hud-dim uppercase">Executed Message</span>
+                    <p id="rb-description" class="text-sm text-gray-300 mt-1"></p>
+                </div>
+
+                <div class="bg-black/60 border border-hud-warn/30 p-4 rounded text-sm text-hud-warn">
+                    <p class="flex items-center gap-2 font-bold mb-1"><i data-lucide="alert-triangle" class="w-4 h-4"></i> WARNING</p>
+                    <p class="text-xs opacity-90">This action will execute the reversible rollback playbook on the host system to revert previous hardening changes. Ensure system stability before proceeding.</p>
+                </div>
+            </div>
+            <div class="bg-[#000f17] p-4 border-t border-hud-secondary flex justify-end gap-3 font-mono">
+                <button onclick="closeRollbackModal()" class="clip-btn px-4 py-2 rounded font-semibold text-gray-400 hover:text-white hover:bg-gray-800 transition">CANCEL</button>
+                <button onclick="confirmRollback()" class="clip-btn px-6 py-2 bg-hud-warn text-black rounded font-bold hover:bg-amber-400 transition shadow-[0_0_15px_rgba(255,183,0,0.4)]">
+                    CONFIRM ROLLBACK
                 </button>
             </div>
         </div>
