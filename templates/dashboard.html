@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="defiant-api-key" content="{{ api_key }}">
     <title>Defiant | HUD</title>
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -314,6 +315,15 @@
     </div>
 
     <script>
+        const DEFIANT_API_KEY = document.querySelector('meta[name="defiant-api-key"]')?.content || '';
+        function getAuthHeaders(extraHeaders = {}) {
+            const headers = { ...extraHeaders };
+            if (DEFIANT_API_KEY) {
+                headers['X-Defiant-Key'] = DEFIANT_API_KEY;
+            }
+            return headers;
+        }
+
         lucide.createIcons();
         let telemetryInterval = null;
         
@@ -461,7 +471,14 @@
         async function resetFIM() {
             if(!confirm("Are you sure you want to reset FIM baselines?")) return;
             try {
-                const res = await fetch('/api/fim/reset', { method: 'POST' });
+                const res = await fetch('/api/fim/reset', { 
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                if (res.status === 401) {
+                    showToast('Authentication Error', 'Unauthorized: Invalid or missing API key.', 'error');
+                    return;
+                }
                 const data = await res.json();
                 showToast('FIM Reset', data.message || data.error, data.success ? 'success' : 'error');
             } catch(e) {
@@ -718,9 +735,13 @@
             try {
                 const res = await fetch('/api/remediate/execute', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
                     body: JSON.stringify({ finding_id: id, approval_granted: true })
                 });
+                if (res.status === 401) {
+                    showToast('Authentication Error', 'Unauthorized: Invalid or missing API key.', 'error');
+                    return;
+                }
                 const data = await res.json();
                 
                 if(data.success) {
@@ -769,7 +790,14 @@
         async function shutdownServer() {
             if(!confirm("WARNING: Are you sure you want to shut down the background security agent?")) return;
             try {
-                await fetch('/api/shutdown', { method: 'POST' });
+                const res = await fetch('/api/shutdown', { 
+                    method: 'POST',
+                    headers: getAuthHeaders()
+                });
+                if (res.status === 401) {
+                    showToast('Authentication Error', 'Unauthorized: Invalid or missing API key.', 'error');
+                    return;
+                }
                 document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#020608; color:#00e5ff; font-family:\'Share Tech Mono\', monospace; font-size:2rem; text-shadow:0 0 15px #00e5ff;">SYSTEM OFFLINE. YOU MAY CLOSE THIS WINDOW.</div>';
             } catch (err) {
                 document.body.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100vh; background:#020608; color:#00e5ff; font-family:\'Share Tech Mono\', monospace; font-size:2rem; text-shadow:0 0 15px #00e5ff;">SYSTEM OFFLINE. YOU MAY CLOSE THIS WINDOW.</div>';

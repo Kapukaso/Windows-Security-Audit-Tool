@@ -1,6 +1,7 @@
 import os
 import hmac
 import secrets
+import threading
 from functools import wraps
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
@@ -10,6 +11,9 @@ import psutil
 
 app = Flask(__name__)
 CORS(app)
+
+# Synchronization lock for scan progress and latest scan state
+STATE_LOCK = threading.Lock()
 
 # API Authentication configuration
 DEFIANT_API_KEY = os.getenv("DEFIANT_API_KEY", "").strip()
@@ -58,7 +62,8 @@ def index():
 @app.route('/api/scan/progress', methods=['GET'])
 def progress():
     """Returns the current progress of the scan."""
-    return jsonify(SCAN_PROGRESS)
+    with STATE_LOCK:
+        return jsonify(dict(SCAN_PROGRESS))
 
 @app.route('/api/scan', methods=['POST'])
 def scan():
@@ -66,17 +71,20 @@ def scan():
     global LATEST_SCAN
     global SCAN_PROGRESS
     
-    try:
+    with STATE_LOCK:
+        if SCAN_PROGRESS["status"] == "running":
+            return jsonify({
+                "success": False,
+                "error": "A security scan is already in progress. Please wait for it to complete."
+            }), 409
+        
         SCAN_PROGRESS["status"] = "running"
         SCAN_PROGRESS["message"] = "Starting audit..."
         SCAN_PROGRESS["percentage"] = 0
-        
+    
+    try:
         # We need to pass SCAN_PROGRESS to run_full_audit so it can update it
         sys_info, score, findings, _ = run_full_audit(progress_tracker=SCAN_PROGRESS)
-        
-        LATEST_SCAN["system_info"] = sys_info
-        LATEST_SCAN["score_data"] = score
-        LATEST_SCAN["findings"] = findings
         
         # Save to SQLite
         scan_id = save_scan_results(sys_info, score, findings)
@@ -84,9 +92,13 @@ def scan():
         from modules.compliance import generate_compliance_report
         compliance_report = generate_compliance_report(findings)
         
-        SCAN_PROGRESS["status"] = "idle"
-        SCAN_PROGRESS["percentage"] = 100
-        SCAN_PROGRESS["message"] = "Complete!"
+        with STATE_LOCK:
+            LATEST_SCAN["system_info"] = sys_info
+            LATEST_SCAN["score_data"] = score
+            LATEST_SCAN["findings"] = findings
+            SCAN_PROGRESS["status"] = "idle"
+            SCAN_PROGRESS["percentage"] = 100
+            SCAN_PROGRESS["message"] = "Complete!"
         
         return jsonify({
             "success": True, 
@@ -98,8 +110,9 @@ def scan():
         })
         
     except Exception as e:
-        SCAN_PROGRESS["status"] = "error"
-        SCAN_PROGRESS["message"] = f"Error: {str(e)}"
+        with STATE_LOCK:
+            SCAN_PROGRESS["status"] = "error"
+            SCAN_PROGRESS["message"] = f"Error: {str(e)}"
         return jsonify({"success": False, "error": str(e)}), 500
 
 @app.route('/api/remediate/preview', methods=['POST'])
