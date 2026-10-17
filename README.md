@@ -23,7 +23,8 @@ Defiant is a lightweight prototype for auditing Windows security posture. It col
 - Calculates a weighted score across 13 categories, with a maximum of 190 points.
 - Maps threat-pattern detections to MITRE ATT&CK technique IDs.
 - Stores scan history and telemetry in SQLite by default, with optional PostgreSQL support.
-- Provides live system telemetry and a browser-based dashboard.
+- Provides a single-port browser dashboard (http://127.0.0.1:5000) with live telemetry, automated remediation, and reversible rollback.
+- Secures host-mutating endpoints with constant-time API key authentication.
 - Supports optional CrowdStrike Falcon IOC lookups. Without Falcon credentials, the threat-intelligence module uses its local IOC data.
 - Checks Windows file signatures using the platform's WinVerifyTrust API to help assess process findings.
 
@@ -53,7 +54,14 @@ Open <http://127.0.0.1:5000> in a browser and start a scan from the dashboard.
 
 ## Configuration
 
-SQLite is used by default; no `.env` file is required for a local SQLite run. To configure PostgreSQL or CrowdStrike Falcon, create a `.env` file in the repository root. Save it as UTF-8 plain text, and do not commit credentials.
+SQLite is used by default; no `.env` file is required for a local SQLite run. To configure PostgreSQL, CrowdStrike Falcon, or custom API authentication, create a `.env` file in the repository root. Save it as UTF-8 plain text, and do not commit credentials.
+
+To configure API key authentication for mutating actions:
+
+```dotenv
+# API Authentication (Optional - if unset, an ephemeral 32-byte key is generated at startup)
+DEFIANT_API_KEY=your-secure-api-key-here
+```
 
 To use PostgreSQL, set:
 
