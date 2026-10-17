@@ -110,6 +110,8 @@ def scan():
         })
         
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         with STATE_LOCK:
             SCAN_PROGRESS["status"] = "error"
             SCAN_PROGRESS["message"] = f"Error: {str(e)}"

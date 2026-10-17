@@ -245,7 +245,7 @@ def save_scan_results(system_info, score_data, all_findings):
     cursor = conn.cursor()
     
     timestamp = datetime.now().isoformat()
-    hostname = system_info.get("Hostname", "Unknown") if isinstance(system_info, dict) else "Unknown"
+    hostname = (system_info.get("Hostname") or system_info.get("Computer Name") or "Unknown") if isinstance(system_info, dict) else "Unknown"
     total_earned = score_data.get("total_earned", 0)
     total_possible = score_data.get("total_possible", 100)
     percentage = (total_earned / total_possible) * 100 if total_possible > 0 else 0
