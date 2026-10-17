@@ -22,13 +22,13 @@ def assess_event_logs(log_stats):
     new_accounts = log_stats.get("NewAccounts", 0)
     
     # Check 1: Brute-force / Password guessing detection
-    if failed_logons > 50:
+    if failed_logons > 20:
         findings.append({
             "id": "EVT-001",
             "title": "High Volume of Failed Logons",
             "category": "Event Logs",
             "severity": "HIGH",
-            "description": f"Detected {failed_logons} failed logon attempts (Event ID 4625) in the last 7 days.",
+            "description": f"Detected {failed_logons} failed logon attempts (Event ID 4625) in the last 24 hours.",
             "recommendation": "Investigate potential brute-force attacks and ensure account lockout policies are enforced."
         })
         
@@ -59,7 +59,7 @@ def assess_event_logs(log_stats):
 
 def get_event_log_stats():
     """
-    Retrieves counts of critical security events from the last 7 days.
+    Retrieves counts of critical security events from the last 24 hours.
     """
     command = r"""
     # Check for Admin privileges first (Security log requires it)
@@ -70,13 +70,13 @@ def get_event_log_stats():
         exit
     }
     
-    $cutoff = (Get-Date).AddDays(-7)
+    $cutoff = (Get-Date).AddHours(-24)
     
     # We use Measure-Object to safely count even if the result is null
-    $failed = (Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625; StartTime=$cutoff} -ErrorAction SilentlyContinue | Measure-Object).Count
-    $cleared = (Get-WinEvent -FilterHashtable @{LogName='Security'; Id=1102; StartTime=$cutoff} -ErrorAction SilentlyContinue | Measure-Object).Count
-    $services = (Get-WinEvent -FilterHashtable @{LogName='System'; Id=7045; StartTime=$cutoff} -ErrorAction SilentlyContinue | Measure-Object).Count
-    $accounts = (Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4720; StartTime=$cutoff} -ErrorAction SilentlyContinue | Measure-Object).Count
+    $failed = (Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4625; StartTime=$cutoff} -MaxEvents 1000 -ErrorAction SilentlyContinue | Measure-Object).Count
+    $cleared = (Get-WinEvent -FilterHashtable @{LogName='Security'; Id=1102; StartTime=$cutoff} -MaxEvents 1000 -ErrorAction SilentlyContinue | Measure-Object).Count
+    $services = (Get-WinEvent -FilterHashtable @{LogName='System'; Id=7045; StartTime=$cutoff} -MaxEvents 1000 -ErrorAction SilentlyContinue | Measure-Object).Count
+    $accounts = (Get-WinEvent -FilterHashtable @{LogName='Security'; Id=4720; StartTime=$cutoff} -MaxEvents 1000 -ErrorAction SilentlyContinue | Measure-Object).Count
 
     @{
         FailedLogons = $failed
@@ -105,7 +105,7 @@ def display_event_logs(log_stats, findings):
         ["New Accounts Created (ID 4720)", log_stats.get("NewAccounts", 0)],
     ]
         
-    print("\n--- Event Log Statistics (Last 7 Days) ---")
+    print("\n--- Event Log Statistics (Last 24 Hours) ---")
     print(
         tabulate(
             table,
