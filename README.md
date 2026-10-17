@@ -19,14 +19,15 @@ Defiant is a lightweight prototype for auditing Windows security posture. It col
 
 ## Features
 
-- Audits Defender, firewall settings, local users, installed software and CVEs, services, startup applications, listening ports, password policy, Windows updates, event logs, file integrity, anomalies, registry settings, and vulnerable drivers.
-- Calculates a weighted score across 13 categories, with a maximum of 190 points.
-- Maps threat-pattern detections to MITRE ATT&CK technique IDs.
-- Stores scan history and telemetry in SQLite by default, with optional PostgreSQL support.
-- Provides a single-port browser dashboard (http://127.0.0.1:5000) with live telemetry, automated remediation, and reversible rollback.
-- Secures host-mutating endpoints with constant-time API key authentication.
-- Supports optional CrowdStrike Falcon IOC lookups. Without Falcon credentials, the threat-intelligence module uses its local IOC data.
-- Checks Windows file signatures using the platform's WinVerifyTrust API to help assess process findings.
+- **Comprehensive Security Auditing**: Audits Defender, firewall settings, local users, installed software and CVEs, running services, startup applications, listening ports, password policy, Windows updates, event logs, file integrity, ML anomalies, registry hardening, and vulnerable drivers.
+- **Risk Scoring Engine**: Calculates a mathematically grounded weighted score across 13 security categories, with a maximum of 190 points.
+- **Multi-Standard Compliance**: Real-time compliance assessment mapping findings against CIS Benchmarks, NIST SP 800-53, ISO/IEC 27001, and HIPAA Security Rule controls.
+- **Two-Step Reversible Remediation**: Playbook-driven hardening actions with impact preview, approval gating for high-risk actions, safe-only enforcement, and one-click rollback.
+- **Dual-Engine Persistence**: Seamless persistence supporting SQLite and enterprise PostgreSQL clusters with schema parity, high-speed indexing, and automated data retention pruning.
+- **Threat Intelligence & MITRE Mapping**: Optional CrowdStrike Falcon IOC lookups with offline fallback database, process SHA-256 matching, and MITRE ATT&CK technique mapping.
+- **High-Performance Caching & Resiliency**: Persistent local NIST NVD CVE cache with circuit breaker, bounded 24-hour event log queries, and WinVerifyTrust Authenticode signature caching.
+- **Single-Port HUD Dashboard**: Sleek browser-based sci-fi HUD (http://127.0.0.1:5000) featuring live CPU/RAM telemetry, scan progress tracking, and toast notifications.
+- **API Security**: Constant-time token verification (`@require_auth`) for all mutating endpoints.
 
 ## Requirements
 
@@ -83,22 +84,33 @@ If the Falcon client ID or secret is not set, the application uses the local IOC
 ## Project layout
 
 ```text
-app.py                  Flask dashboard and API
+app.py                  Flask dashboard and REST API
 main.py                 Audit orchestration and scoring
-database/               SQLite and PostgreSQL persistence
-modules/                System collection and audit modules
-security/               Remediation and file-signature verification
-templates/              Dashboard template
-tests/                  Unit tests
+database/               SQLite and PostgreSQL persistence with TTL pruning
+documentation/          Full technical documentation and phase guides
+modules/                System collection, compliance, and audit modules
+security/               Remediation playbooks, rollback, and WinTrust verification
+templates/              HUD dashboard and report templates
+tests/                  Hermetic mock unit tests (Pytest)
 ```
 
 ## Tests
 
-Run the audit scoring tests with:
+Run the complete 61-test unit and mock test suite with:
 
 ```powershell
-python -m unittest tests/test_audit.py
+python -m pytest tests/ -v
 ```
+
+All tests are hermetic and run fully offline without requiring Windows Administrator elevation by utilizing comprehensive mocks for WMI, PowerShell, WinTrust ctypes, and network endpoints.
+
+## Documentation
+
+Comprehensive architectural documentation and phase breakdown guides are available in the [documentation/](documentation/index.md) directory:
+- [API Reference](documentation/API_Reference.md): REST API endpoints and authentication.
+- [Developer Guide](documentation/Developer_Guide.md): Extending modules and remediation playbooks.
+- [Database & UI Architecture](documentation/Database_and_UI_Architecture.md): Dual-engine persistence and HUD design.
+- [Enterprise Workflow & Threat Intel](documentation/Enterprise_Workflow_and_Intel.md): Playbooks, rollbacks, and Falcon integration.
 
 ## Safe use
 

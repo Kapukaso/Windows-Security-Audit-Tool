@@ -1,138 +1,315 @@
 # API Reference
 
-The Defiant Windows Security Posture Platform exposes a RESTful API powered by Flask. This API serves the frontend web dashboard, allowing it to asynchronously request scans, fetch history, and monitor live telemetry.
+The Defiant Windows Security Posture Platform exposes a RESTful API powered by Flask. This API serves the frontend web dashboard and external management clients, allowing clients to trigger scans, track progress, review compliance, execute reversible hardening actions, and monitor live hardware telemetry.
 
 ## Base URL
-All API endpoints are served from the local Flask server, typically running at:
+All API endpoints are served from the local Flask server, running by default at:
 `http://127.0.0.1:5000`
 
 ---
 
-## 1. Trigger Full Audit
-Executes the full 10-phase security audit across the host system and returns the aggregated results. The results are also automatically saved to the SQLite database.
+## Authentication & Security
 
-**Endpoint:** `/api/scan`
-**Method:** `POST`
+Host-mutating endpoints are guarded by the `@require_auth` decorator. If `DEFIANT_API_KEY` is configured in `.env`, all mutating endpoints require a matching key. If unset, an ephemeral 32-byte cryptographically secure token is generated at server startup and automatically provided to the web dashboard.
 
-### Request Body
-*None required.*
+### Authentication Headers
+Clients can authenticate by passing the token in either of the following headers:
+* `X-Defiant-Key: <your-token>`
+* `Authorization: Bearer <your-token>`
 
-### Response (JSON)
-* `success` (boolean): Indicates if the scan completed without fatal errors.
-* `scan_id` (integer): The primary key ID of the scan saved in the `audit_history.db` database.
-* `score` (object): Contains the calculated security score.
-  * `category_scores` (object): Breakdown of points earned per category.
-  * `total_earned` (integer): Total points earned.
-  * `total_possible` (integer): Maximum possible points (typically 135).
-* `findings` (array): A list of finding objects (vulnerabilities or informational flags).
-  * `id` (string): The unique finding ID (e.g., `POL-001`).
-  * `category` (string): The category of the finding (e.g., `Password Policy`).
-  * `severity` (string): `CRITICAL`, `HIGH`, `MEDIUM`, `LOW`, or `INFO`.
-  * `title` (string): Description of the finding.
-* `system_info` (object): Basic host information (Hostname, OS, OS Version).
+Tokens are compared using constant-time evaluation (`hmac.compare_digest`) to prevent timing attacks.
+
+### Protected Endpoints
+* `POST /api/remediate/execute`
+* `POST /api/remediate/rollback`
+* `POST /api/fim/reset`
+* `POST /api/shutdown`
 
 ---
 
-## 2. Apply Remediation
-Triggers the automated hardening script for a specific finding ID.
+## Endpoints
 
-**Endpoint:** `/api/remediate`
-**Method:** `POST`
+### 1. Trigger Full Audit
+Triggers a multi-threaded security audit across all 16 host collection modules, computes risk scores, compiles multi-standard compliance reports, and records the results to the database.
 
-### Request Body (JSON)
-* `finding_id` (string): **Required.** The unique ID of the finding to remediate (e.g., `"POL-001"`).
+* **Endpoint:** `/api/scan`
+* **Method:** `POST`
+* **Auth Required:** No
 
+#### Response (`200 OK`)
 ```json
 {
-  "finding_id": "POL-001"
+  "success": true,
+  "scan_id": 17,
+  "score": {
+    "total_earned": 140,
+    "total_possible": 190,
+    "percentage": 73.68,
+    "category_scores": {
+      "Defender": 25,
+      "Firewall": 25,
+      "Users": 10,
+      "Password Policy": 15,
+      "Installed Software": 15,
+      "Running Services": 10,
+      "Startup Applications": 5,
+      "Network Ports": 10,
+      "Windows Updates": 15,
+      "Event Logs": 10,
+      "File Integrity Monitoring": 10,
+      "Machine Learning Anomalies": 10,
+      "Registry & Drivers": 30
+    }
+  },
+  "compliance": {
+    "CIS": {
+      "compliance_score": 80.0,
+      "passed": 8,
+      "failed": 2,
+      "rules": [
+        {
+          "requirement": "CIS 2.1 (UAC Settings)",
+          "description": "Ensure User Account Control (UAC) is enabled.",
+          "status": "PASS",
+          "evidence": "System meets secure baseline configuration.",
+          "fix_guidance": "Maintain current configuration."
+        }
+      ]
+    },
+    "NIST_SP_800_53": { "compliance_score": 85.0, "passed": 17, "failed": 3 },
+    "ISO_27001": { "compliance_score": 90.0, "passed": 9, "failed": 1 },
+    "HIPAA": { "compliance_score": 88.0, "passed": 7, "failed": 1 }
+  },
+  "system_info": {
+    "Computer Name": "DESKTOP-MNP9GR1",
+    "Operating System": "Windows",
+    "OS Version": "10.0.26100",
+    "Architecture": "AMD64",
+    "RAM (GB)": 15.71,
+    "CPU Usage (%)": 12.5
+  },
+  "findings": [
+    {
+      "id": "REG-001",
+      "category": "Registry & Drivers",
+      "severity": "HIGH",
+      "title": "LSA RunAsPPL is not enabled",
+      "description": "Local Security Authority is running without Protected Process Light protection.",
+      "recommendation": "Enable RunAsPPL in HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa."
+    }
+  ]
 }
 ```
 
-### Response (JSON)
-* `success` (boolean): Indicates if the remediation action was successfully applied.
-* `message` (string): A descriptive result message (e.g., "Successfully increased minimum password length to 8." or an error explaining why it failed).
+*Note: If an audit is already running when this endpoint is called, it returns `409 Conflict` with `{"success": false, "error": "A security scan is already in progress."}`.*
 
 ---
 
-## 3. Get Scan History
-Retrieves the 10 most recent historical scans from the SQLite database.
+### 2. Poll Scan Progress
+Retrieves real-time execution status and task completion percentage during an audit.
 
-**Endpoint:** `/api/history`
-**Method:** `GET`
+* **Endpoint:** `/api/scan/progress`
+* **Method:** `GET`
+* **Auth Required:** No
 
-### Request Body
-*None required.*
-
-### Response (JSON)
-* `success` (boolean): Indicates if the history was successfully retrieved.
-* `history` (array): A list of the 10 most recent scan objects.
-  * `id` (integer): The scan ID in the database.
-  * `timestamp` (string): ISO 8601 formatted timestamp of when the scan occurred.
-  * `hostname` (string): The host scanned.
-  * `total_earned` (integer): Total points earned.
-  * `total_possible` (integer): Total possible points.
-  * `percentage` (float): The overall score percentage (out of 100).
+#### Response (`200 OK`)
+```json
+{
+  "status": "running",
+  "message": "Completed firewall scan...",
+  "percentage": 45
+}
+```
 
 ---
 
-## 4. Get Live Telemetry
-Returns real-time hardware telemetry utilizing the `psutil` library. Used to drive the live CPU and RAM usage charts on the dashboard.
+### 3. Preview Remediation Playbook
+Retrieves detailed impact analysis, risk classification, exact PowerShell/cmd execution commands, and verification procedures before executing a fix.
 
-**Endpoint:** `/api/telemetry`
-**Method:** `GET`
+* **Endpoint:** `/api/remediate/preview`
+* **Method:** `POST`
+* **Auth Required:** No
 
-### Request Body
-*None required.*
+#### Request Body
+```json
+{
+  "finding_id": "REG-001"
+}
+```
 
-### Response (JSON)
-* `success` (boolean): True if telemetry was successfully retrieved.
-* `cpu_percent` (float): Current CPU usage percentage.
-* `ram_percent` (float): Current physical memory usage percentage.
-* `ram_used_gb` (float): Amount of RAM in use (in Gigabytes).
-* `ram_total_gb` (float): Total physical RAM installed (in Gigabytes).
-
----
-
-## 5. Get Scan Progress
-Retrieves the real-time progress of a running asynchronous scan.
-
-**Endpoint:** `/api/scan/progress`
-**Method:** `GET`
-
-### Request Body
-*None required.*
-
-### Response (JSON)
-* `status` (string): The current status (`idle`, `running`, `error`).
-* `message` (string): Human-readable progress description (e.g., `Checking CVE Database...`).
-* `percentage` (integer): Completion percentage (0-100).
+#### Response (`200 OK`)
+```json
+{
+  "finding_id": "REG-001",
+  "title": "Enable LSA Protection (RunAsPPL)",
+  "description": "Enables LSASS Protected Process Light to defend against memory extraction tools like Mimikatz.",
+  "command": "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa' -Name 'RunAsPPL' -Value 1 -Type DWord -Force",
+  "rollback_cmd": "Set-ItemProperty -Path 'HKLM:\\SYSTEM\\CurrentControlSet\\Control\\Lsa' -Name 'RunAsPPL' -Value 0 -Type DWord -Force",
+  "safe_only": false,
+  "requires_approval": true,
+  "impact": "HIGH"
+}
+```
 
 ---
 
-## 6. Reset FIM Baselines
-Drops the existing File Integrity Monitoring (FIM) baselines from the database. The next scan will automatically establish new secure baselines.
+### 4. Execute Remediation Playbook
+Executes a remediation playbook to harden the system against a detected vulnerability.
 
-**Endpoint:** `/api/fim/reset`
-**Method:** `POST`
+* **Endpoint:** `/api/remediate/execute`
+* **Method:** `POST`
+* **Auth Required:** Yes (`X-Defiant-Key` or `Authorization: Bearer`)
 
-### Request Body
-*None required.*
+#### Request Body
+```json
+{
+  "finding_id": "REG-001",
+  "approval_granted": true,
+  "safe_only_policy": false
+}
+```
 
-### Response (JSON)
-* `success` (boolean): Indicates if the reset was successful.
-* `message` (string): Confirmation message.
+#### Response (`200 OK`)
+```json
+{
+  "finding_id": "REG-001",
+  "status": "SUCCESS",
+  "message": "Successfully enabled LSA Protection (RunAsPPL).",
+  "verification_passed": true
+}
+```
+
+#### Error Responses
+* `401 Unauthorized`: Missing or invalid authentication token.
+* `200 OK` with status `"BLOCKED"`: If `requires_approval` is true but `approval_granted` is false, or if `safe_only_policy` is true and the playbook is classified as non-safe.
 
 ---
 
-## 7. Shutdown Server
-Gracefully terminates the background Flask process. Used by the UI when the user exits the platform.
+### 5. Rollback Remediation
+Executes the registered reverse command for a previously applied remediation to restore prior system state.
 
-**Endpoint:** `/api/shutdown`
-**Method:** `POST`
+* **Endpoint:** `/api/remediate/rollback`
+* **Method:** `POST`
+* **Auth Required:** Yes (`X-Defiant-Key` or `Authorization: Bearer`)
 
-### Request Body
-*None required.*
+#### Request Body
+```json
+{
+  "finding_id": "REG-001"
+}
+```
 
-### Response (JSON)
-* `success` (boolean): Always true upon receipt.
-* `message` (string): Confirmation message before the server exits.
+#### Response (`200 OK`)
+```json
+{
+  "finding_id": "REG-001",
+  "status": "SUCCESS",
+  "message": "Successfully rolled back finding REG-001."
+}
+```
+
+---
+
+### 6. Get Remediation Audit History
+Retrieves all historical remediation execution and rollback records from the database.
+
+* **Endpoint:** `/api/remediate/history`
+* **Method:** `GET`
+* **Auth Required:** No
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "history": [
+    {
+      "id": 1,
+      "timestamp": "2026-10-17T15:30:00",
+      "finding_id": "REG-001",
+      "action_type": "EXECUTE",
+      "status": "SUCCESS",
+      "message": "Successfully enabled LSA Protection (RunAsPPL)."
+    }
+  ]
+}
+```
+
+---
+
+### 7. Reset File Integrity Monitoring (FIM) Baselines
+Clears existing cryptographic file baselines from the database. Subsequent scans will calculate and record a fresh baseline.
+
+* **Endpoint:** `/api/fim/reset`
+* **Method:** `POST`
+* **Auth Required:** Yes (`X-Defiant-Key` or `Authorization: Bearer`)
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "FIM baselines have been reset (4 entries cleared). Run a scan to establish new baselines."
+}
+```
+
+---
+
+### 8. Get Scan History
+Retrieves historical security posture scans and score trends from the database.
+
+* **Endpoint:** `/api/history`
+* **Method:** `GET`
+* **Auth Required:** No
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "history": [
+    {
+      "id": 17,
+      "timestamp": "2026-10-17T16:29:20",
+      "hostname": "DESKTOP-MNP9GR1",
+      "total_earned": 140,
+      "total_possible": 190,
+      "percentage": 73.68
+    }
+  ]
+}
+```
+
+---
+
+### 9. Get Live Hardware Telemetry
+Fetches real-time CPU and RAM utilization metrics via `psutil` and records entries into the database telemetry log.
+
+* **Endpoint:** `/api/telemetry`
+* **Method:** `GET`
+* **Auth Required:** No
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "cpu_percent": 14.2,
+  "ram_percent": 68.5,
+  "ram_used_gb": 10.76,
+  "ram_total_gb": 15.71
+}
+```
+
+---
+
+### 10. Shutdown Server
+Gracefully terminates the Flask background web service.
+
+* **Endpoint:** `/api/shutdown`
+* **Method:** `POST`
+* **Auth Required:** Yes (`X-Defiant-Key` or `Authorization: Bearer`)
+
+#### Response (`200 OK`)
+```json
+{
+  "success": true,
+  "message": "Server shutting down..."
+}
+```
