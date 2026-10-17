@@ -5,7 +5,7 @@ Monitors critical system files for unauthorized cryptographic hash changes.
 """
 import hashlib
 import os
-import sqlite3
+from database.database import get_fim_baseline, save_fim_baseline
 
 CRITICAL_FILES = [
     r"C:\Windows\System32\drivers\etc\hosts",
@@ -32,7 +32,7 @@ def hash_file(filepath):
     except Exception:
         return None
 
-def audit_fim(db_path="audit_history.db"):
+def audit_fim(db_path=None):
     """
     Checks critical files against known baselines in the database.
     If a baseline doesn't exist, it creates one.
@@ -40,17 +40,6 @@ def audit_fim(db_path="audit_history.db"):
     findings = []
     
     try:
-        conn = sqlite3.connect(db_path)
-        cursor = conn.cursor()
-        
-        # Ensure FIM table exists
-        cursor.execute('''
-        CREATE TABLE IF NOT EXISTS fim_baselines (
-            file_path TEXT PRIMARY KEY,
-            sha256_hash TEXT NOT NULL
-        )
-        ''')
-        
         for filepath in CRITICAL_FILES:
             current_hash = hash_file(filepath)
             
@@ -59,27 +48,25 @@ def audit_fim(db_path="audit_history.db"):
                     "id": "FIM-002",
                     "category": "FIM",
                     "severity": "HIGH",
-                    "title": f"Critical File Missing or Inaccessible",
+                    "title": "Critical File Missing or Inaccessible",
                     "description": f"Could not hash {filepath}."
                 })
                 continue
             
-            cursor.execute("SELECT sha256_hash FROM fim_baselines WHERE file_path = ?", (filepath,))
-            row = cursor.fetchone()
+            baseline_hash = get_fim_baseline(filepath)
             
-            if row is None:
+            if baseline_hash is None:
                 # Baseline doesn't exist. This is the first scan. Save the baseline.
-                cursor.execute("INSERT INTO fim_baselines (file_path, sha256_hash) VALUES (?, ?)", (filepath, current_hash))
+                save_fim_baseline(filepath, current_hash)
                 # Add an INFO finding just to note that a baseline was established.
                 findings.append({
                     "id": "FIM-INFO",
                     "category": "FIM",
                     "severity": "INFO",
-                    "title": f"Baseline Established",
+                    "title": "Baseline Established",
                     "description": f"Initial SHA-256 baseline recorded for {filepath}."
                 })
             else:
-                baseline_hash = row[0]
                 if current_hash != baseline_hash:
                     findings.append({
                         "id": "FIM-001",
@@ -88,9 +75,6 @@ def audit_fim(db_path="audit_history.db"):
                         "title": "File Integrity Violation",
                         "description": f"The hash for {filepath} has changed! Baseline: {baseline_hash[:8]}... Current: {current_hash[:8]}... This indicates tampering or rootkit activity."
                     })
-        
-        conn.commit()
-        conn.close()
         
     except Exception as e:
         findings.append({

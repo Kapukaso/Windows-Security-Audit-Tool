@@ -108,14 +108,9 @@ def remediate_history():
 def reset_fim():
     """Resets FIM baselines after an authorized change."""
     try:
-        import sqlite3
-        from database.database import DB_PATH
-        conn = sqlite3.connect(DB_PATH)
-        cursor = conn.cursor()
-        cursor.execute("DROP TABLE IF EXISTS fim_baselines")
-        conn.commit()
-        conn.close()
-        return jsonify({"success": True, "message": "FIM baselines have been reset. Run a scan to establish new baselines."})
+        from database.database import reset_fim_baselines
+        count = reset_fim_baselines()
+        return jsonify({"success": True, "message": f"FIM baselines have been reset ({count} entries cleared). Run a scan to establish new baselines."})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
 
