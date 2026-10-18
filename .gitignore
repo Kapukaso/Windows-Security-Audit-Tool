@@ -43,4 +43,5 @@ node_frontend/node_modules/
 /documentation
 .defiant_config.json
 /.agents
-/.planning
+.planning
+.planning/codebase/
