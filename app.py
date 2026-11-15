@@ -6,7 +6,14 @@ from functools import wraps
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 from main import run_full_audit
-from database.database import init_db, save_scan_results, get_scan_history
+from database.database import (
+    init_db,
+    save_scan_results,
+    get_scan_history,
+    get_patch_history,
+    get_pinned_packages
+)
+import security.patcher as patcher
 import psutil
 
 app = Flask(__name__)
@@ -52,6 +59,13 @@ SCAN_PROGRESS = {
     "status": "idle",
     "message": "",
     "percentage": 0
+}
+
+PATCHER_PROGRESS = {
+    "status": "idle",
+    "message": "",
+    "percentage": 0,
+    "current_package": ""
 }
 
 @app.route('/')
@@ -194,6 +208,161 @@ def shutdown():
     import signal
     os.kill(os.getpid(), signal.SIGINT)
     return jsonify({"success": True, "message": "Server shutting down..."})
+
+# ==========================================
+# Automated Patch Management API Endpoints
+# ==========================================
+
+@app.route('/api/patcher/status', methods=['GET'])
+def patcher_status():
+    """Returns patcher status, winget availability, scheduler status, and updatable packages."""
+    try:
+        winget_ok = patcher.is_winget_available()
+        sched_status = patcher.get_scheduler_status()
+
+        with STATE_LOCK:
+            is_running = (PATCHER_PROGRESS["status"] == "running")
+
+        updatables = []
+        if winget_ok:
+            pkg_data = patcher.get_updatable_packages()
+            updatables = pkg_data.get("packages", [])
+
+        pinned_pkgs = get_pinned_packages()
+
+        return jsonify({
+            "success": True,
+            "winget_available": winget_ok,
+            "bootstrap_command": None if winget_ok else patcher.get_winget_bootstrap_command(),
+            "scheduler": sched_status,
+            "updatable_packages": updatables,
+            "updatable_count": len(updatables),
+            "pinned_count": len(pinned_pkgs),
+            "is_running": is_running
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/patcher/schedule', methods=['POST'])
+@require_auth
+def patcher_schedule():
+    """Toggles or configures the automated bi-weekly scheduled task."""
+    try:
+        data = request.json or {}
+        enabled = data.get("enabled", True)
+        updated_status = patcher.toggle_scheduler_task(enabled=enabled)
+        return jsonify({
+            "success": True,
+            "scheduler": updated_status,
+            "message": f"Bi-weekly patch schedule {'enabled' if enabled else 'disabled'}."
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/patcher/run-now', methods=['POST'])
+@require_auth
+def patcher_run_now():
+    """Triggers an on-demand unattended package upgrade cycle in the background."""
+    global PATCHER_PROGRESS
+    with STATE_LOCK:
+        if PATCHER_PROGRESS["status"] == "running":
+            return jsonify({
+                "success": False,
+                "error": "A patch upgrade cycle is already in progress. Please wait for it to complete."
+            }), 409
+
+        PATCHER_PROGRESS["status"] = "running"
+        PATCHER_PROGRESS["message"] = "Starting automated patch upgrade cycle..."
+        PATCHER_PROGRESS["percentage"] = 0
+        PATCHER_PROGRESS["current_package"] = ""
+
+    def progress_callback(msg, pct):
+        with STATE_LOCK:
+            PATCHER_PROGRESS["message"] = msg
+            PATCHER_PROGRESS["percentage"] = pct
+            if "(" in msg and ")" in msg:
+                PATCHER_PROGRESS["current_package"] = msg
+
+    def background_worker():
+        try:
+            patcher.execute_upgrades(trigger_type="MANUAL", progress_callback=progress_callback)
+        except Exception as e:
+            with STATE_LOCK:
+                PATCHER_PROGRESS["message"] = f"Error during patch cycle: {str(e)}"
+        finally:
+            with STATE_LOCK:
+                PATCHER_PROGRESS["status"] = "idle"
+                PATCHER_PROGRESS["percentage"] = 100
+
+    worker_thread = threading.Thread(target=background_worker, daemon=True)
+    worker_thread.start()
+
+    return jsonify({
+        "success": True,
+        "message": "Automated patch upgrade cycle initiated."
+    })
+
+
+@app.route('/api/patcher/progress', methods=['GET'])
+def patcher_progress():
+    """Returns the current progress of the in-flight patch upgrade."""
+    with STATE_LOCK:
+        return jsonify(dict(PATCHER_PROGRESS))
+
+
+@app.route('/api/patcher/pins', methods=['GET'])
+def patcher_pins():
+    """Returns all pinned software and recommended pins."""
+    try:
+        pins = patcher.get_pins()
+        recommended = patcher.get_recommended_pins()
+        return jsonify({
+            "success": True,
+            "pins": pins,
+            "recommended": recommended
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/patcher/pin', methods=['POST'])
+@require_auth
+def patcher_add_pin():
+    """Pins an application to block automated upgrades."""
+    try:
+        data = request.json or {}
+        pkg_id = data.get("package_id")
+        pkg_name = data.get("package_name")
+        reason = data.get("reason")
+        if not pkg_id:
+            return jsonify({"success": False, "error": "package_id is required."}), 400
+        result = patcher.pin_package(package_id=pkg_id, package_name=pkg_name, reason=reason)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/patcher/pin/<package_id>', methods=['DELETE'])
+@require_auth
+def patcher_remove_pin(package_id):
+    """Unpins an application to resume automated upgrades."""
+    try:
+        result = patcher.unpin_package(package_id=package_id)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
+
+@app.route('/api/patcher/history', methods=['GET'])
+def patcher_history():
+    """Returns patch execution audit history."""
+    try:
+        history = get_patch_history()
+        return jsonify({"success": True, "history": history})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 if __name__ == '__main__':
     # Ensure database is ready

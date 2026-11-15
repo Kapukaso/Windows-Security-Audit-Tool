@@ -139,6 +139,9 @@
         <div class="nav-item flex items-center gap-4 p-3 text-hud-dim font-mono text-lg font-semibold mb-2 cursor-pointer transition-all border-l-[3px] border-transparent hover:text-hud-primary hover:bg-hud-primary/5 hover:border-hud-secondary" onclick="switchTab('remediation')" id="nav-remediation">
             <i data-lucide="shield-check" class="w-5 h-5"></i> Remediation Log
         </div>
+        <div class="nav-item flex items-center gap-4 p-3 text-hud-dim font-mono text-lg font-semibold mb-2 cursor-pointer transition-all border-l-[3px] border-transparent hover:text-hud-primary hover:bg-hud-primary/5 hover:border-hud-secondary" onclick="switchTab('patcher')" id="nav-patcher">
+            <i data-lucide="package-check" class="w-5 h-5"></i> Auto-Patcher
+        </div>
     </div>
 
     <!-- MAIN CONTENT -->
@@ -349,6 +352,182 @@
             </div>
         </div>
 
+        <!-- AUTO-PATCHER VIEW -->
+        <div id="view-patcher" class="view-section">
+            <div class="flex justify-between items-end mb-8 border-b border-hud-secondary pb-4 relative">
+                <div class="absolute -bottom-[1px] right-0 w-24 h-[1px] bg-hud-primary shadow-hud"></div>
+                <div>
+                    <h1 class="text-4xl font-bold mb-1 tracking-widest text-white text-glow">AUTOMATED APPLICATION PATCHER</h1>
+                    <p class="text-hud-primary font-mono text-sm tracking-widest flex items-center gap-2">
+                        <i data-lucide="package-check" class="w-4 h-4"></i> WINGET AUTOMATION PROTOCOL // BI-WEEKLY (14-DAY) CADENCE // PROCESS GUARD ACTIVE
+                    </p>
+                </div>
+                <div class="flex gap-4">
+                    <button id="patchNowBtn" onclick="runManualPatcher()" class="clip-btn bg-hud-primary/10 text-hud-primary border border-hud-primary px-6 py-2 font-mono font-semibold flex items-center gap-2 hover:bg-hud-primary hover:text-black transition-all shadow-hud-inset hover:shadow-hud">
+                        <i data-lucide="download" class="w-4 h-4"></i> <span id="patchBtnText">UPGRADE ALL APPS NOW</span>
+                        <i data-lucide="loader" class="spin w-4 h-4 hidden" id="patchBtnLoader"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Missing Winget Diagnostic Banner -->
+            <div id="winget-alert-banner" class="hidden bg-hud-alert/15 border-2 border-hud-alert p-6 mb-8 clip-hud relative shadow-[0_0_20px_rgba(255,42,42,0.3)]">
+                <div class="flex items-start gap-4">
+                    <i data-lucide="alert-octagon" class="w-8 h-8 text-hud-alert flex-shrink-0 mt-1"></i>
+                    <div class="flex-1">
+                        <h3 class="text-xl font-bold text-hud-alert tracking-wider font-mono mb-1">WINGET NOT DETECTED ON HOST SYSTEM</h3>
+                        <p class="text-sm font-mono text-gray-300 mb-3">Windows Package Manager (winget) is required to run automated background updates. Run the following command in an elevated PowerShell session to install Microsoft Desktop App Installer:</p>
+                        <div class="flex items-center gap-2 bg-black/60 border border-hud-alert/40 p-3 font-mono text-xs text-hud-warn">
+                            <code id="winget-bootstrap-code" class="flex-1 select-all font-mono">Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe</code>
+                            <button onclick="copyBootstrapCmd()" class="px-3 py-1 bg-hud-alert/20 border border-hud-alert text-hud-alert hover:bg-hud-alert hover:text-black font-mono text-xs transition-all font-semibold">COPY COMMAND</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- In-Flight Upgrade Progress Container -->
+            <div id="patcher-progress-container" class="hidden mb-8 bg-hud-primary/5 border border-hud-primary p-4 clip-btn relative">
+                <div class="flex justify-between mb-2">
+                    <span class="font-mono text-sm text-hud-primary tracking-widest flex items-center gap-2">
+                        <i data-lucide="loader" class="spin w-4 h-4"></i> PATCH_CYCLE_IN_PROGRESS
+                    </span>
+                    <span id="patcher-progress-status" class="font-mono text-sm text-white">Initializing update engine...</span>
+                </div>
+                <div class="h-1.5 w-full bg-hud-secondary overflow-hidden mb-2">
+                    <div id="patcher-progress-bar" class="h-full w-0 bg-hud-primary transition-all duration-300 shadow-[0_0_15px_#00e5ff]"></div>
+                </div>
+                <div id="patcher-current-pkg" class="font-mono text-xs text-hud-dim tracking-wider">Scanning packages...</div>
+            </div>
+
+            <!-- 4 Metrics Cards Grid -->
+            <div class="grid grid-cols-4 gap-6 mb-8">
+                <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
+                    <div class="text-sm text-hud-dim tracking-widest font-mono mb-2">SCHEDULE CADENCE</div>
+                    <div id="patcher-schedule-state" class="text-3xl font-mono font-bold text-hud-safe">BI-WEEKLY</div>
+                    <div id="patcher-schedule-sub" class="text-xs text-hud-dim font-mono mt-1">14-Day (Sunday 03:00)</div>
+                </div>
+                <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
+                    <div class="text-sm text-hud-dim tracking-widest font-mono mb-2">NEXT RUN</div>
+                    <div id="patcher-next-run" class="text-xl font-mono font-bold text-hud-primary">SYNCING...</div>
+                    <div id="patcher-last-run" class="text-xs text-hud-dim font-mono mt-1">Last: Unknown</div>
+                </div>
+                <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
+                    <div class="text-sm text-hud-dim tracking-widest font-mono mb-2">PINNED PACKAGES</div>
+                    <div id="patcher-pins-count" class="text-3xl font-mono font-bold text-hud-warn">0</div>
+                    <div class="text-xs text-hud-dim font-mono mt-1">Protected from auto-update</div>
+                </div>
+                <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
+                    <div class="text-sm text-hud-dim tracking-widest font-mono mb-2">PENDING UPDATES</div>
+                    <div id="patcher-pending-count" class="text-3xl font-mono font-bold text-hud-text">0</div>
+                    <div class="text-xs text-hud-dim font-mono mt-1">Available via Winget</div>
+                </div>
+            </div>
+
+            <!-- Task Scheduler Control Panel -->
+            <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 mb-8 relative backdrop-blur-sm before:absolute before:inset-0 before:border border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
+                <div class="flex justify-between items-center border-b border-hud-primary/20 pb-4 mb-4">
+                    <div>
+                        <h2 class="text-lg tracking-[3px] text-hud-primary font-mono flex items-center gap-2">
+                            <i data-lucide="calendar-clock" class="w-5 h-5"></i> TASK SCHEDULER CADENCE CONTROL
+                        </h2>
+                        <p class="text-xs text-hud-dim font-mono mt-1">
+                            Windows Scheduled Task: <span class="text-white">Defiant-AppAutoPatcher</span> // Triggers Sunday 03:00 AM every 2 weeks. Runs silently as SYSTEM with catch-up on boot (StartWhenAvailable) and battery permissions.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span id="scheduler-badge" class="px-3 py-1 font-mono text-xs font-bold border border-hud-safe text-hud-safe bg-hud-safe/10 rounded">READY</span>
+                        <button id="toggleScheduleBtn" onclick="handleScheduleToggle()" class="clip-btn bg-transparent text-hud-primary border border-hud-primary px-4 py-2 font-mono text-xs font-semibold hover:bg-hud-primary hover:text-black transition-all">
+                            PAUSE SCHEDULE
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-4 font-mono text-xs text-hud-dim">
+                    <div class="p-3 bg-hud-primary/5 border border-hud-secondary/40">
+                        <span class="text-white font-bold block mb-1"><i data-lucide="shield-check" class="w-3.5 h-3.5 inline mr-1 text-hud-safe"></i> Active Process Guard</span>
+                        Skips running applications (e.g., Discord, Chrome, IDEs) to prevent unexpected shutdown or lost work.
+                    </div>
+                    <div class="p-3 bg-hud-primary/5 border border-hud-secondary/40">
+                        <span class="text-white font-bold block mb-1"><i data-lucide="wifi-off" class="w-3.5 h-3.5 inline mr-1 text-hud-warn"></i> Metered Connection Deferral</span>
+                        Automatically skips background downloads when connected to mobile hotspots or metered cellular networks.
+                    </div>
+                    <div class="p-3 bg-hud-primary/5 border border-hud-secondary/40">
+                        <span class="text-white font-bold block mb-1"><i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline mr-1 text-hud-primary"></i> Boot Catch-Up</span>
+                        If PC was offline or asleep at 03:00 AM Sunday, task runs promptly when system starts up.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Software Pinning Section -->
+            <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 mb-8 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
+                <h2 class="text-lg tracking-[3px] text-hud-primary font-mono mb-2 flex items-center gap-2 border-b border-hud-primary/20 pb-3">
+                    <i data-lucide="pin" class="w-5 h-5"></i> PINNED APPLICATIONS (AUTO-UPGRADE BLOCKLIST)
+                </h2>
+                <p class="text-xs text-hud-dim font-mono mb-4">
+                    Pinned packages will NEVER be touched by automated patch cycles. Both native Winget pins and Defiant database pins are synchronized.
+                </p>
+
+                <!-- Quick Pin Recommended Runtimes -->
+                <div class="mb-6">
+                    <span class="text-xs font-mono text-hud-primary uppercase tracking-wider block mb-2">QUICK PIN RECOMMENDED RUNTIMES:</span>
+                    <div id="recommended-pins-container" class="flex flex-wrap gap-2">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Custom Pin Form -->
+                <div class="flex gap-3 mb-6">
+                    <input type="text" id="custom-pin-id" placeholder="Package ID (e.g. Python.Python.3.11)" class="flex-1 bg-black/60 border border-hud-secondary px-4 py-2 font-mono text-sm text-white placeholder-hud-dim focus:outline-none focus:border-hud-primary">
+                    <input type="text" id="custom-pin-name" placeholder="Package Name (optional)" class="w-64 bg-black/60 border border-hud-secondary px-4 py-2 font-mono text-sm text-white placeholder-hud-dim focus:outline-none focus:border-hud-primary">
+                    <input type="text" id="custom-pin-reason" placeholder="Reason (e.g. Production Dependency)" class="w-64 bg-black/60 border border-hud-secondary px-4 py-2 font-mono text-sm text-white placeholder-hud-dim focus:outline-none focus:border-hud-primary">
+                    <button onclick="handleCustomPinSubmit()" class="clip-btn bg-hud-warn/20 text-hud-warn border border-hud-warn px-6 py-2 font-mono text-sm font-semibold hover:bg-hud-warn hover:text-black transition-all">
+                        PIN PACKAGE
+                    </button>
+                </div>
+
+                <!-- Active Pins Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">PACKAGE NAME</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">PACKAGE ID</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">PIN TYPE</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">REASON</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary text-right">ACTION</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patcher-pins-tbody">
+                            <tr><td colspan="5" class="p-4 text-center font-mono text-xs text-hud-dim">[ NO_PACKAGES_PINNED — All applications are eligible for automated patching ]</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Patch Audit Trail Table -->
+            <div class="clip-hud bg-[#00141e]/60 border border-hud-secondary p-6 relative backdrop-blur-sm before:absolute before:inset-0 before:border before:border-hud-primary before:clip-hud before:opacity-50 before:pointer-events-none">
+                <h2 class="text-lg tracking-[3px] text-hud-primary font-mono mb-4 flex items-center gap-2 border-b border-hud-primary/20 pb-3">
+                    <i data-lucide="history" class="w-5 h-5"></i> PATCH AUDIT TRAIL
+                </h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">TIMESTAMP</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">TRIGGER</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">UPDATED</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">SKIPPED (IN-USE)</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">FAILED</th>
+                                <th class="p-3 font-mono text-xs text-hud-primary bg-hud-primary/5 border-b border-hud-secondary">STATUS</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patcher-history-tbody">
+                            <tr><td colspan="6" class="p-4 text-center font-mono text-xs text-hud-dim">[ NO_PATCH_CYCLES_RECORDED — Upgrade events will be cataloged here ]</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
@@ -409,6 +588,10 @@
                 loadHistory();
             } else if (tabId === 'remediation') {
                 loadRemediationHistory();
+            } else if (tabId === 'patcher') {
+                loadPatcherStatus();
+                loadPatcherPins();
+                loadPatcherHistory();
             }
         }
 
@@ -941,6 +1124,341 @@
             `;
             document.body.appendChild(modal);
             lucide.createIcons();
+        }
+
+        // ==========================================
+        // AUTO-PATCHER JAVASCRIPT LOGIC
+        // ==========================================
+        let patcherProgressInterval = null;
+        let currentSchedulerState = true;
+
+        async function loadPatcherStatus() {
+            try {
+                const res = await fetch('/api/patcher/status');
+                const data = await res.json();
+                if (!data.success) return;
+
+                // Winget banner
+                const banner = document.getElementById('winget-alert-banner');
+                if (banner) {
+                    banner.classList.toggle('hidden', data.winget_available);
+                }
+
+                // Metrics
+                const sched = data.scheduler || {};
+                const isEnabled = sched.task_exists && sched.state === 'Ready';
+                currentSchedulerState = isEnabled;
+
+                const schedStateEl = document.getElementById('patcher-schedule-state');
+                if (schedStateEl) {
+                    schedStateEl.innerText = isEnabled ? 'ACTIVE' : 'PAUSED';
+                    schedStateEl.className = isEnabled ? 'text-3xl font-mono font-bold text-hud-safe' : 'text-3xl font-mono font-bold text-hud-dim';
+                }
+
+                const badgeEl = document.getElementById('scheduler-badge');
+                const toggleBtn = document.getElementById('toggleScheduleBtn');
+                if (badgeEl) {
+                    badgeEl.innerText = isEnabled ? 'READY' : 'DISABLED';
+                    badgeEl.className = isEnabled 
+                        ? 'px-3 py-1 font-mono text-xs font-bold border border-hud-safe text-hud-safe bg-hud-safe/10 rounded'
+                        : 'px-3 py-1 font-mono text-xs font-bold border border-hud-dim text-hud-dim bg-hud-dim/10 rounded';
+                }
+                if (toggleBtn) {
+                    toggleBtn.innerText = isEnabled ? 'PAUSE SCHEDULE' : 'RESUME SCHEDULE';
+                }
+
+                const nextRunEl = document.getElementById('patcher-next-run');
+                const lastRunEl = document.getElementById('patcher-last-run');
+                if (nextRunEl) nextRunEl.innerText = sched.next_run || 'Not Scheduled';
+                if (lastRunEl) lastRunEl.innerText = `Last: ${sched.last_run || 'Never'}`;
+
+                const pinsCountEl = document.getElementById('patcher-pins-count');
+                if (pinsCountEl) pinsCountEl.innerText = data.pinned_count || 0;
+
+                const pendingCountEl = document.getElementById('patcher-pending-count');
+                if (pendingCountEl) pendingCountEl.innerText = data.updatable_count || 0;
+
+                // In-flight progress polling if running
+                if (data.is_running && !patcherProgressInterval) {
+                    startPatcherProgressPolling();
+                }
+                lucide.createIcons();
+            } catch(e) {
+                console.error("Failed to load patcher status:", e);
+            }
+        }
+
+        async function handleScheduleToggle() {
+            const newState = !currentSchedulerState;
+            try {
+                const res = await fetch('/api/patcher/schedule', {
+                    method: 'POST',
+                    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ enabled: newState })
+                });
+                if (res.status === 401) {
+                    showToast('Authentication Error', 'Unauthorized: Valid API key required.', 'error');
+                    return;
+                }
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Schedule Updated', data.message || `Bi-weekly schedule ${newState ? 'enabled' : 'disabled'}.`, 'success');
+                    await loadPatcherStatus();
+                } else {
+                    showToast('Schedule Error', data.error || 'Failed to update schedule.', 'error');
+                }
+            } catch(e) {
+                showToast('Connection Error', 'Could not communicate with patcher API.', 'error');
+            }
+        }
+
+        async function runManualPatcher() {
+            const btn = document.getElementById('patchNowBtn');
+            const btnText = document.getElementById('patchBtnText');
+            const btnLoader = document.getElementById('patchBtnLoader');
+            const pContainer = document.getElementById('patcher-progress-container');
+
+            btn.disabled = true;
+            btnText.innerText = 'PATCHING...';
+            btnLoader.classList.remove('hidden');
+            if (pContainer) pContainer.classList.remove('hidden');
+
+            try {
+                const res = await fetch('/api/patcher/run-now', {
+                    method: 'POST',
+                    headers: getAuthHeaders({ 'Content-Type': 'application/json' })
+                });
+                if (res.status === 401) {
+                    showToast('Authentication Error', 'Unauthorized: Valid API key required.', 'error');
+                    resetPatcherButton();
+                    return;
+                }
+                if (res.status === 409) {
+                    showToast('In Progress', 'A patch upgrade cycle is already running.', 'warning');
+                    startPatcherProgressPolling();
+                    return;
+                }
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Patch Cycle Started', 'Silent upgrades initiated across all eligible software.', 'info');
+                    startPatcherProgressPolling();
+                } else {
+                    showToast('Patch Failed', data.error || 'Could not initiate upgrades.', 'error');
+                    resetPatcherButton();
+                }
+            } catch(e) {
+                showToast('Connection Error', 'Failed to reach patcher backend.', 'error');
+                resetPatcherButton();
+            }
+        }
+
+        function resetPatcherButton() {
+            const btn = document.getElementById('patchNowBtn');
+            const btnText = document.getElementById('patchBtnText');
+            const btnLoader = document.getElementById('patchBtnLoader');
+            if (btn) btn.disabled = false;
+            if (btnText) btnText.innerText = 'UPGRADE ALL APPS NOW';
+            if (btnLoader) btnLoader.classList.add('hidden');
+        }
+
+        function startPatcherProgressPolling() {
+            if (patcherProgressInterval) clearInterval(patcherProgressInterval);
+            const pContainer = document.getElementById('patcher-progress-container');
+            if (pContainer) pContainer.classList.remove('hidden');
+
+            patcherProgressInterval = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/patcher/progress');
+                    const data = await res.json();
+                    const pBar = document.getElementById('patcher-progress-bar');
+                    const pStatus = document.getElementById('patcher-progress-status');
+                    const pPkg = document.getElementById('patcher-current-pkg');
+
+                    if (pBar) pBar.style.width = (data.percentage || 0) + '%';
+                    if (pStatus) pStatus.innerText = data.message || 'Processing...';
+                    if (pPkg && data.current_package) pPkg.innerText = data.current_package;
+
+                    if (data.status === 'idle') {
+                        clearInterval(patcherProgressInterval);
+                        patcherProgressInterval = null;
+                        resetPatcherButton();
+                        showToast('Upgrades Complete', 'Patch upgrade cycle finished.', 'success');
+                        setTimeout(() => {
+                            if (pContainer) pContainer.classList.add('hidden');
+                        }, 3000);
+                        await loadPatcherStatus();
+                        await loadPatcherHistory();
+                    }
+                } catch(e) {}
+            }, 1000);
+        }
+
+        async function loadPatcherPins() {
+            try {
+                const res = await fetch('/api/patcher/pins');
+                const data = await res.json();
+                if (!data.success) return;
+
+                // Render recommended pins pills
+                const recContainer = document.getElementById('recommended-pins-container');
+                if (recContainer && data.recommended) {
+                    recContainer.innerHTML = '';
+                    const pinnedIds = new Set((data.pins || []).map(p => p.package_id.toLowerCase()));
+
+                    data.recommended.forEach(rec => {
+                        const isPinned = pinnedIds.has(rec.package_id.toLowerCase());
+                        const btn = document.createElement('button');
+                        btn.className = isPinned
+                            ? 'px-3 py-1 font-mono text-xs border border-hud-dim text-hud-dim bg-hud-dim/10 rounded cursor-not-allowed'
+                            : 'px-3 py-1 font-mono text-xs border border-hud-primary text-hud-primary bg-hud-primary/10 rounded hover:bg-hud-primary hover:text-black transition-all';
+                        btn.disabled = isPinned;
+                        btn.innerHTML = `<i data-lucide="${isPinned ? 'check' : 'pin'}" class="w-3 h-3 inline mr-1"></i> ${rec.package_name}`;
+                        if (!isPinned) {
+                            btn.onclick = () => pinPackage(rec.package_id, rec.package_name, rec.reason);
+                        }
+                        recContainer.appendChild(btn);
+                    });
+                    lucide.createIcons();
+                }
+
+                // Render active pins table
+                const tbody = document.getElementById('patcher-pins-tbody');
+                if (tbody) {
+                    if (!data.pins || data.pins.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center font-mono text-xs text-hud-dim">[ NO_PACKAGES_PINNED — All applications are eligible for automated patching ]</td></tr>';
+                    } else {
+                        tbody.innerHTML = '';
+                        data.pins.forEach(pin => {
+                            tbody.innerHTML += `
+                                <tr class="hover:bg-hud-primary/5 transition-colors border-b border-hud-secondary/40 font-mono text-xs">
+                                    <td class="p-3 text-white font-bold">${pin.package_name}</td>
+                                    <td class="p-3 text-hud-primary">${pin.package_id}</td>
+                                    <td class="p-3"><span class="px-2 py-0.5 border border-hud-warn text-hud-warn bg-hud-warn/10 rounded">${pin.pin_type}</span></td>
+                                    <td class="p-3 text-gray-300">${pin.reason || 'Manual pin'}</td>
+                                    <td class="p-3 text-right">
+                                        <button onclick="unpinPackage('${pin.package_id}')" class="px-2 py-1 border border-hud-alert/60 text-hud-alert hover:bg-hud-alert hover:text-black transition-all text-xs font-semibold">
+                                            UNPIN
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    }
+                }
+            } catch(e) {
+                console.error("Failed to load pins:", e);
+            }
+        }
+
+        async function handleCustomPinSubmit() {
+            const idEl = document.getElementById('custom-pin-id');
+            const nameEl = document.getElementById('custom-pin-name');
+            const reasonEl = document.getElementById('custom-pin-reason');
+
+            const pkgId = idEl ? idEl.value.trim() : '';
+            const pkgName = nameEl ? nameEl.value.trim() : '';
+            const reason = reasonEl ? reasonEl.value.trim() : '';
+
+            if (!pkgId) {
+                showToast('Validation Error', 'Package ID is required (e.g. Python.Python.3.11).', 'warning');
+                return;
+            }
+
+            await pinPackage(pkgId, pkgName || pkgId, reason || 'User specified pin');
+            if (idEl) idEl.value = '';
+            if (nameEl) nameEl.value = '';
+            if (reasonEl) reasonEl.value = '';
+        }
+
+        async function pinPackage(id, name, reason) {
+            try {
+                const res = await fetch('/api/patcher/pin', {
+                    method: 'POST',
+                    headers: getAuthHeaders({ 'Content-Type': 'application/json' }),
+                    body: JSON.stringify({ package_id: id, package_name: name, reason: reason })
+                });
+                if (res.status === 401) {
+                    showToast('Authentication Error', 'Unauthorized: Valid API key required.', 'error');
+                    return;
+                }
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Package Pinned', `Successfully blocked updates for ${id}.`, 'success');
+                    await loadPatcherPins();
+                    await loadPatcherStatus();
+                } else {
+                    showToast('Pinning Failed', data.error || 'Could not pin package.', 'error');
+                }
+            } catch(e) {
+                showToast('Connection Error', 'Failed to reach patcher API.', 'error');
+            }
+        }
+
+        async function unpinPackage(id) {
+            try {
+                const res = await fetch(`/api/patcher/pin/${encodeURIComponent(id)}`, {
+                    method: 'DELETE',
+                    headers: getAuthHeaders()
+                });
+                if (res.status === 401) {
+                    showToast('Authentication Error', 'Unauthorized: Valid API key required.', 'error');
+                    return;
+                }
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Package Unpinned', `Updates resumed for ${id}.`, 'success');
+                    await loadPatcherPins();
+                    await loadPatcherStatus();
+                } else {
+                    showToast('Unpinning Failed', data.error || 'Could not unpin package.', 'error');
+                }
+            } catch(e) {
+                showToast('Connection Error', 'Failed to reach patcher API.', 'error');
+            }
+        }
+
+        async function loadPatcherHistory() {
+            try {
+                const res = await fetch('/api/patcher/history');
+                const data = await res.json();
+                const tbody = document.getElementById('patcher-history-tbody');
+                if (!tbody) return;
+
+                if (data.success && data.history && data.history.length > 0) {
+                    tbody.innerHTML = '';
+                    data.history.forEach(item => {
+                        let badgeClass = 'border-green-500/50 bg-green-950/40 text-green-400';
+                        if (item.status === 'FAILED') {
+                            badgeClass = 'border-hud-alert/50 bg-red-950/40 text-hud-alert';
+                        } else if (item.status === 'PARTIAL' || item.status === 'METERED_DEFERRED') {
+                            badgeClass = 'border-hud-warn/50 bg-amber-950/40 text-hud-warn';
+                        }
+
+                        tbody.innerHTML += `
+                            <tr class="hover:bg-hud-primary/5 transition-colors border-b border-hud-secondary/40 font-mono text-xs">
+                                <td class="p-3 text-hud-dim">${new Date(item.timestamp).toLocaleString()}</td>
+                                <td class="p-3 text-hud-primary font-bold">${item.trigger_type}</td>
+                                <td class="p-3 text-hud-safe font-bold">${item.packages_updated}</td>
+                                <td class="p-3 text-hud-warn">${item.packages_skipped}</td>
+                                <td class="p-3 text-hud-alert">${item.packages_failed}</td>
+                                <td class="p-3"><span class="px-2 py-0.5 border rounded ${badgeClass}">${item.status}</span></td>
+                            </tr>
+                        `;
+                    });
+                } else {
+                    tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center font-mono text-xs text-hud-dim">[ NO_PATCH_CYCLES_RECORDED — Upgrade events will be cataloged here ]</td></tr>';
+                }
+            } catch(e) {
+                console.error("Failed to load patcher history:", e);
+            }
+        }
+
+        function copyBootstrapCmd() {
+            const codeEl = document.getElementById('winget-bootstrap-code');
+            if (codeEl) {
+                navigator.clipboard.writeText(codeEl.innerText.trim());
+                showToast('Copied', 'PowerShell bootstrap command copied to clipboard.', 'success');
+            }
         }
         
         async function shutdownServer() {

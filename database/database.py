@@ -115,6 +115,28 @@ def init_db():
             timestamp TIMESTAMP NOT NULL
         )
         ''')
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS patch_history (
+            id SERIAL PRIMARY KEY,
+            timestamp TIMESTAMP NOT NULL,
+            trigger_type TEXT NOT NULL,
+            packages_updated INTEGER NOT NULL,
+            packages_skipped INTEGER NOT NULL,
+            packages_failed INTEGER NOT NULL,
+            details TEXT,
+            status TEXT NOT NULL
+        )
+        ''')
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS patcher_pins (
+            id SERIAL PRIMARY KEY,
+            package_id TEXT UNIQUE NOT NULL,
+            package_name TEXT NOT NULL,
+            pin_type TEXT NOT NULL DEFAULT 'BLOCKING',
+            created_at TIMESTAMP NOT NULL,
+            reason TEXT
+        )
+        ''')
     else:
         # SQLite Schema (Local Fallback)
         cursor.execute('''
@@ -162,6 +184,28 @@ def init_db():
             timestamp TEXT NOT NULL
         )
         ''')
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS patch_history (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            timestamp TEXT NOT NULL,
+            trigger_type TEXT NOT NULL,
+            packages_updated INTEGER NOT NULL,
+            packages_skipped INTEGER NOT NULL,
+            packages_failed INTEGER NOT NULL,
+            details TEXT,
+            status TEXT NOT NULL
+        )
+        ''')
+        cursor.execute('''
+        CREATE TABLE IF NOT EXISTS patcher_pins (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            package_id TEXT UNIQUE NOT NULL,
+            package_name TEXT NOT NULL,
+            pin_type TEXT NOT NULL DEFAULT 'BLOCKING',
+            created_at TEXT NOT NULL,
+            reason TEXT
+        )
+        ''')
 
     # Create Indexes for high-speed lookups
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_findings_severity ON findings(severity)')
@@ -169,6 +213,8 @@ def init_db():
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON telemetry_log(timestamp)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_fim_path ON fim_baselines(file_path)')
     cursor.execute('CREATE INDEX IF NOT EXISTS idx_cve_lookup ON nvd_cve_cache(software_name, software_version)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_patch_history_timestamp ON patch_history(timestamp)')
+    cursor.execute('CREATE INDEX IF NOT EXISTS idx_patcher_pins_id ON patcher_pins(package_id)')
     
     conn.commit()
     conn.close()
@@ -472,5 +518,133 @@ def save_cve_cache(software_name, software_version, cve_data):
                 VALUES (?, ?, ?, ?)
             ''', (software_name, software_version, payload, timestamp))
         conn.commit()
+    finally:
+        conn.close()
+
+def save_patch_run(trigger_type, packages_updated, packages_skipped, packages_failed, details=None, status="SUCCESS"):
+    """Records a patch upgrade execution in patch_history (PATCH-01)."""
+    trigger_type = sanitize_null_bytes(trigger_type)
+    status = sanitize_null_bytes(status)
+    details_str = json.dumps(sanitize_null_bytes(details)) if details is not None else "{}"
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    timestamp = datetime.now().isoformat()
+    
+    try:
+        if is_postgres(conn):
+            cursor.execute('''
+                INSERT INTO patch_history (timestamp, trigger_type, packages_updated, packages_skipped, packages_failed, details, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id
+            ''', (timestamp, trigger_type, int(packages_updated), int(packages_skipped), int(packages_failed), details_str, status))
+            row_id = cursor.fetchone()[0]
+        else:
+            cursor.execute('''
+                INSERT INTO patch_history (timestamp, trigger_type, packages_updated, packages_skipped, packages_failed, details, status)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ''', (timestamp, trigger_type, int(packages_updated), int(packages_skipped), int(packages_failed), details_str, status))
+            row_id = cursor.lastrowid
+        conn.commit()
+        return row_id
+    finally:
+        conn.close()
+
+def get_patch_history(limit=50):
+    """Retrieves recent patch execution records (PATCH-03)."""
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        query = f"SELECT id, timestamp, trigger_type, packages_updated, packages_skipped, packages_failed, details, status FROM patch_history ORDER BY id DESC LIMIT {int(limit)}"
+        cursor.execute(query)
+        rows = cursor.fetchall()
+        history = []
+        for r in rows:
+            details_obj = {}
+            if r[6]:
+                try:
+                    details_obj = json.loads(r[6])
+                except Exception:
+                    details_obj = {"raw": r[6]}
+            history.append({
+                "id": r[0],
+                "timestamp": str(r[1]),
+                "trigger_type": r[2],
+                "packages_updated": r[3],
+                "packages_skipped": r[4],
+                "packages_failed": r[5],
+                "details": details_obj,
+                "status": r[7]
+            })
+        return history
+    finally:
+        conn.close()
+
+def get_pinned_packages():
+    """Retrieves all pinned packages from patcher_pins (PATCH-01)."""
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT id, package_id, package_name, pin_type, created_at, reason FROM patcher_pins ORDER BY id ASC")
+        rows = cursor.fetchall()
+        pins = []
+        for r in rows:
+            pins.append({
+                "id": r[0],
+                "package_id": r[1],
+                "package_name": r[2],
+                "pin_type": r[3],
+                "created_at": str(r[4]),
+                "reason": r[5] or ""
+            })
+        return pins
+    finally:
+        conn.close()
+
+def add_pinned_package(package_id, package_name, pin_type="BLOCKING", reason=None):
+    """Adds or updates a pinned package in patcher_pins (PATCH-01)."""
+    package_id = sanitize_null_bytes(package_id).strip()
+    package_name = sanitize_null_bytes(package_name).strip()
+    pin_type = sanitize_null_bytes(pin_type).strip() or "BLOCKING"
+    reason = sanitize_null_bytes(reason).strip() if reason else ""
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    timestamp = datetime.now().isoformat()
+    
+    try:
+        if is_postgres(conn):
+            cursor.execute('''
+                INSERT INTO patcher_pins (package_id, package_name, pin_type, created_at, reason)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (package_id) DO UPDATE SET
+                    package_name = EXCLUDED.package_name,
+                    pin_type = EXCLUDED.pin_type,
+                    reason = EXCLUDED.reason
+            ''', (package_id, package_name, pin_type, timestamp, reason))
+        else:
+            cursor.execute('''
+                INSERT OR REPLACE INTO patcher_pins (package_id, package_name, pin_type, created_at, reason)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (package_id, package_name, pin_type, timestamp, reason))
+        conn.commit()
+        return True
+    finally:
+        conn.close()
+
+def remove_pinned_package(package_id):
+    """Removes a package from patcher_pins (PATCH-01)."""
+    package_id = sanitize_null_bytes(package_id).strip()
+    init_db()
+    conn = get_connection()
+    cursor = conn.cursor()
+    try:
+        if is_postgres(conn):
+            cursor.execute("DELETE FROM patcher_pins WHERE package_id = %s", (package_id,))
+        else:
+            cursor.execute("DELETE FROM patcher_pins WHERE package_id = ?", (package_id,))
+        conn.commit()
+        return cursor.rowcount > 0
     finally:
         conn.close()
